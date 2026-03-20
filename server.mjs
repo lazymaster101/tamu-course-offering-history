@@ -10,7 +10,9 @@ const CACHE_TTL_MS = 1000 * 60 * 60 * 12;
 const CONCURRENCY = 2;
 const REQUEST_RETRIES = 3;
 const RETRY_DELAY_MS = 350;
-const HOWDY_INFO_TIMEOUT_MS = 8000;
+const SYLLABUS_INFO_REQUEST_RETRIES = 1;
+const SYLLABUS_INFO_RETRY_DELAY_MS = 200;
+const SYLLABUS_INFO_TIMEOUT_MS = 2500;
 
 const PUBLIC_DIR = join(process.cwd(), "public");
 const CACHE_DIR = join(process.cwd(), ".cache");
@@ -31,6 +33,7 @@ const CAMPUS_LABELS = {
 
 const catalogIndexPromises = new Map();
 let prebuiltCatalogIndexPromise = null;
+const syllabusTargetPromiseCache = new Map();
 
 function jsonResponse(response, statusCode, payload) {
   const body = JSON.stringify(payload);
@@ -182,7 +185,7 @@ function isValidLegacyLinkTarget(linkUrl) {
 }
 
 async function fetchHowdyInfoJson(path) {
-  for (let attempt = 0; attempt <= REQUEST_RETRIES; attempt += 1) {
+  for (let attempt = 0; attempt <= SYLLABUS_INFO_REQUEST_RETRIES; attempt += 1) {
     try {
       const targetUrl = new URL(path, HOWDY_BASE_URL);
       const payload = await new Promise((resolvePromise, rejectPromise) => {
@@ -227,7 +230,7 @@ async function fetchHowdyInfoJson(path) {
           }
         );
 
-        request.setTimeout(HOWDY_INFO_TIMEOUT_MS, () => {
+        request.setTimeout(SYLLABUS_INFO_TIMEOUT_MS, () => {
           const error = new Error("Howdy syllabus info request timed out.");
           error.statusCode = 0;
           request.destroy(error);
@@ -239,37 +242,63 @@ async function fetchHowdyInfoJson(path) {
 
       return payload;
     } catch (error) {
-      if (!shouldRetryHowdyRequest(error, attempt)) {
+      const canRetry =
+        attempt < SYLLABUS_INFO_REQUEST_RETRIES &&
+        shouldRetryHowdyRequest(error, attempt);
+
+      if (!canRetry) {
         throw error;
       }
 
-      await wait(RETRY_DELAY_MS * (attempt + 1));
+      await wait(SYLLABUS_INFO_RETRY_DELAY_MS * (attempt + 1));
     }
   }
 }
 
 async function resolveLegacySyllabusTarget(termCode, crn) {
-  const fallbackUrl = buildLegacyPublicSyllabusPdfUrl(termCode, crn);
+  const cacheKey = `${termCode}:${crn}`;
 
-  try {
-    const syllabusInfo = await fetchHowdyInfoJson(
-      `/api/course-syllabus-info?termCode=${encodeURIComponent(termCode)}&crn=${encodeURIComponent(crn)}`
-    );
-
-    if (
-      syllabusInfo.SWRFASY_SEL_TYPE === "L" &&
-      isValidLegacyLinkTarget(syllabusInfo.SWRFASY_URL_LINK)
-    ) {
-      return syllabusInfo.SWRFASY_URL_LINK;
-    }
-
-    return fallbackUrl;
-  } catch (error) {
-    console.warn(
-      `Falling back to public syllabus PDF for ${termCode}/${crn}: ${error.message}`
-    );
-    return fallbackUrl;
+  if (syllabusTargetPromiseCache.has(cacheKey)) {
+    return syllabusTargetPromiseCache.get(cacheKey);
   }
+
+  const fallbackUrl = buildLegacyPublicSyllabusPdfUrl(termCode, crn);
+  const targetPromise = (async () => {
+    let resolvedFromHowdy = false;
+
+    try {
+      const syllabusInfo = await fetchHowdyInfoJson(
+        `/api/course-syllabus-info?termCode=${encodeURIComponent(termCode)}&crn=${encodeURIComponent(crn)}`
+      );
+      resolvedFromHowdy = true;
+
+      if (
+        syllabusInfo.SWRFASY_SEL_TYPE === "L" &&
+        isValidLegacyLinkTarget(syllabusInfo.SWRFASY_URL_LINK)
+      ) {
+        return syllabusInfo.SWRFASY_URL_LINK;
+      }
+
+      return fallbackUrl;
+    } catch (error) {
+      console.warn(
+        `Falling back to public syllabus PDF for ${termCode}/${crn}: ${error.message}`
+      );
+      return fallbackUrl;
+    } finally {
+      if (!resolvedFromHowdy) {
+        syllabusTargetPromiseCache.delete(cacheKey);
+      }
+    }
+  })();
+
+  syllabusTargetPromiseCache.set(cacheKey, targetPromise);
+  return targetPromise;
+}
+
+function detectHonors(title, attributes) {
+  const normalizedTitle = String(title ?? "").trim().toUpperCase();
+  return normalizedTitle.startsWith("HNR-") || attributes.some((attribute) => /honors/i.test(attribute));
 }
 
 function inferCampus(termDescription) {
@@ -622,6 +651,8 @@ function parseJsonField(rawValue, fallback = []) {
 }
 
 function mapSectionRow(row) {
+  const attributes =
+    row.SWV_CLASS_SEARCH_ATTRIBUTES?.split("|").map((attribute) => attribute.trim()) ?? [];
   const instructors = parseJsonField(row.SWV_CLASS_SEARCH_INSTRCTR_JSON, []).map(
     (instructor) => ({
       name: instructor.NAME,
@@ -664,6 +695,7 @@ function mapSectionRow(row) {
     hoursIndicator: row.SWV_CLASS_SEARCH_HOURS_IND,
     openForRegistration: row.STUSEAT_OPEN === "Y",
     hasSyllabus: row.SWV_CLASS_SEARCH_HAS_SYL_IND === "Y",
+    isHonors: detectHonors(row.SWV_CLASS_SEARCH_TITLE, attributes),
     syllabusMode:
       row.SWV_CLASS_SEARCH_HAS_SYL_IND === "Y"
         ? Number(row.SWV_CLASS_SEARCH_TERM) >= 202631
@@ -676,8 +708,7 @@ function mapSectionRow(row) {
           ? buildSimpleSyllabusUrl(row.SWV_CLASS_SEARCH_TERM, row.SWV_CLASS_SEARCH_CRN)
           : buildOpenSyllabusPath(row.SWV_CLASS_SEARCH_TERM, row.SWV_CLASS_SEARCH_CRN)
         : null,
-    attributes:
-      row.SWV_CLASS_SEARCH_ATTRIBUTES?.split("|").map((attribute) => attribute.trim()) ?? [],
+    attributes,
     instructors,
     meetings
   };

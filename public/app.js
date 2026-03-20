@@ -96,12 +96,26 @@ function renderResults(results) {
   }
 }
 
-function createSectionRow(section) {
-  const wrapper = document.createElement("article");
-  wrapper.className = "section-row";
+function sortSectionsByNumber(left, right) {
+  return left.section.localeCompare(right.section, undefined, { numeric: true });
+}
 
-  const instructorNames = section.instructors.map((instructor) => instructor.name).join(", ");
-  const meetingSummary = section.meetings
+function getDisplayInstructorName(name) {
+  return String(name ?? "")
+    .replace(/\s+\([A-Z]+\)$/u, "")
+    .trim();
+}
+
+function getInstructorNames(section) {
+  const names = section.instructors
+    .map((instructor) => getDisplayInstructorName(instructor.name))
+    .filter(Boolean);
+
+  return names.length ? names : ["Staff / Instructor TBD"];
+}
+
+function formatMeetingSummary(section) {
+  return section.meetings
     .map((meeting) => {
       const dayLabel = meeting.days.length ? meeting.days.join("/") : "No fixed days";
       const timeLabel =
@@ -112,22 +126,185 @@ function createSectionRow(section) {
       return `${meeting.meetingType}: ${dayLabel}, ${timeLabel}${roomLabel ? `, ${roomLabel}` : ""}`;
     })
     .join(" | ");
+}
 
-  wrapper.innerHTML = `
-    <div class="section-row-header">
-      <p class="section-name">Section ${section.section} • CRN ${section.crn}</p>
-      <span class="result-meta">${section.scheduleType} • ${section.instructionalMethod}</span>
-    </div>
-    <p class="section-detail">${section.openForRegistration ? "Open" : "Closed"} for registration${section.site ? ` • ${section.site}` : ""}${section.session ? ` • ${section.session}` : ""}</p>
-    ${instructorNames ? `<p class="section-detail">Instructor${section.instructors.length > 1 ? "s" : ""}: ${instructorNames}</p>` : ""}
-    ${meetingSummary ? `<p class="section-detail">${meetingSummary}</p>` : ""}
-  `;
+function formatSectionList(sections) {
+  return [...sections]
+    .sort(sortSectionsByNumber)
+    .map((section) => section.section)
+    .join(", ");
+}
 
-  if (section.hasSyllabus) {
+function createTextElement(tagName, className, text) {
+  const node = document.createElement(tagName);
+  node.className = className;
+  node.textContent = text;
+  return node;
+}
+
+function createBadge(label, tone) {
+  const badge = document.createElement("span");
+  badge.className = `syllabus-badge${tone ? ` is-${tone}` : ""}`;
+  badge.textContent = label;
+  return badge;
+}
+
+function buildSyllabusGroupKey(section) {
+  const instructorKey = getInstructorNames(section)
+    .slice()
+    .sort((left, right) => left.localeCompare(right))
+    .join("|")
+    .toLowerCase();
+
+  return [
+    instructorKey || "staff",
+    section.isHonors ? "honors" : "standard",
+    (section.session ?? "").toLowerCase(),
+    (section.instructionalMethod ?? "").toLowerCase(),
+    (section.scheduleType ?? "").toLowerCase()
+  ].join("::");
+}
+
+function groupSectionsBySyllabus(sections) {
+  const groups = new Map();
+
+  [...sections].sort(sortSectionsByNumber).forEach((section) => {
+    const key = buildSyllabusGroupKey(section);
+    const existing = groups.get(key);
+
+    if (existing) {
+      existing.sections.push(section);
+      if (section.site) {
+        existing.sites.add(section.site);
+      }
+      if (section.hasSyllabus && !existing.representativeSection) {
+        existing.representativeSection = section;
+      }
+      return;
+    }
+
+    groups.set(key, {
+      key,
+      instructorLabel: getInstructorNames(section).join(", "),
+      isHonors: Boolean(section.isHonors),
+      scheduleType: section.scheduleType,
+      instructionalMethod: section.instructionalMethod,
+      session: section.session,
+      sites: new Set(section.site ? [section.site] : []),
+      representativeSection: section.hasSyllabus ? section : null,
+      sections: [section]
+    });
+  });
+
+  return [...groups.values()]
+    .map((group) => ({
+      ...group,
+      sites: [...group.sites],
+      sections: group.sections.sort(sortSectionsByNumber)
+    }))
+    .sort((left, right) => sortSectionsByNumber(left.sections[0], right.sections[0]));
+}
+
+function createGroupedSectionItem(section) {
+  const item = document.createElement("div");
+  item.className = "group-section-item";
+
+  item.append(
+    createTextElement("p", "group-section-name", `Section ${section.section} • CRN ${section.crn}`)
+  );
+
+  const metaParts = [
+    section.openForRegistration ? "Open" : "Closed",
+    section.scheduleType,
+    section.instructionalMethod
+  ].filter(Boolean);
+
+  item.append(createTextElement("p", "group-section-detail", metaParts.join(" • ")));
+
+  const locationParts = [section.site, section.session].filter(Boolean);
+  if (locationParts.length) {
+    item.append(createTextElement("p", "group-section-detail", locationParts.join(" • ")));
+  }
+
+  const meetingSummary = formatMeetingSummary(section);
+  if (meetingSummary) {
+    item.append(createTextElement("p", "group-section-detail", meetingSummary));
+  }
+
+  return item;
+}
+
+function createSyllabusGroupCard(group) {
+  const wrapper = document.createElement("article");
+  wrapper.className = "section-row syllabus-group-card";
+
+  const header = document.createElement("div");
+  header.className = "syllabus-group-header";
+
+  const primary = document.createElement("div");
+  primary.className = "syllabus-group-primary";
+  primary.append(createTextElement("p", "section-name", group.instructorLabel));
+
+  const badges = document.createElement("div");
+  badges.className = "syllabus-group-badges";
+  badges.append(createBadge(group.isHonors ? "Honors" : "Standard", group.isHonors ? "honors" : "standard"));
+  badges.append(
+    createBadge(
+      `${group.sections.length} section${group.sections.length === 1 ? "" : "s"}`,
+      "muted"
+    )
+  );
+  primary.append(badges);
+  header.append(primary);
+
+  const headerMeta = [group.scheduleType, group.instructionalMethod].filter(Boolean).join(" • ");
+  if (headerMeta) {
+    header.append(createTextElement("span", "result-meta", headerMeta));
+  }
+
+  wrapper.append(header);
+
+  const summaryParts = [`Sections ${formatSectionList(group.sections)}`];
+  if (group.session) {
+    summaryParts.push(group.session);
+  }
+  if (group.sites.length) {
+    summaryParts.push(group.sites.join(" • "));
+  }
+  wrapper.append(createTextElement("p", "section-detail", summaryParts.join(" • ")));
+
+  const syllabusSections = group.sections.filter((section) => section.hasSyllabus);
+
+  if (group.representativeSection) {
+    const noteSections = syllabusSections.length ? syllabusSections : group.sections;
+    const syllabusNote =
+      noteSections.length > 1
+        ? `Shared syllabus for sections ${formatSectionList(noteSections)}.`
+        : `Syllabus available for section ${noteSections[0].section}.`;
+    wrapper.append(createTextElement("p", "section-detail group-syllabus-note", syllabusNote));
+  } else {
+    wrapper.append(
+      createTextElement(
+        "p",
+        "section-detail group-syllabus-note",
+        "TAMU did not expose a syllabus for this instructor group."
+      )
+    );
+  }
+
+  const sectionList = document.createElement("div");
+  sectionList.className = "group-section-list";
+  group.sections.forEach((section) => {
+    sectionList.append(createGroupedSectionItem(section));
+  });
+  wrapper.append(sectionList);
+
+  if (group.representativeSection) {
     const syllabusButton = document.createElement("button");
     syllabusButton.className = "section-link";
     syllabusButton.type = "button";
-    syllabusButton.textContent = "Open syllabus";
+    syllabusButton.textContent =
+      group.sections.length > 1 ? "Open shared syllabus" : "Open syllabus";
     wrapper.append(syllabusButton);
 
     const syllabusState = document.createElement("p");
@@ -136,7 +313,7 @@ function createSectionRow(section) {
     wrapper.append(syllabusState);
 
     syllabusButton.addEventListener("click", () =>
-      openSyllabus(section, syllabusButton, syllabusState)
+      openSyllabus(group.representativeSection, syllabusButton, syllabusState)
     );
   }
 
@@ -258,13 +435,16 @@ async function loadSections(subject, courseNumber, termCode, container, button, 
       return;
     }
 
-    response.sections.forEach((section) => {
-      container.append(createSectionRow(section));
+    const groupedSections = groupSectionsBySyllabus(response.sections);
+    groupedSections.forEach((group) => {
+      container.append(createSyllabusGroupCard(group));
     });
 
-    const syllabusCount = response.sections.filter((section) => section.hasSyllabus).length;
+    const syllabusGroupCount = groupedSections.filter(
+      (group) => group.representativeSection
+    ).length;
 
-    if (!syllabusCount) {
+    if (!syllabusGroupCount) {
       container.append(
         createInfoNote("TAMU did not expose any syllabus links for this term.")
       );
@@ -274,8 +454,8 @@ async function loadSections(subject, courseNumber, termCode, container, button, 
       card.dataset.loaded = "loaded";
     }
     if (hint) {
-      hint.textContent = syllabusCount
-        ? `${syllabusCount} syllabus link${syllabusCount === 1 ? "" : "s"} available`
+      hint.textContent = syllabusGroupCount
+        ? `${syllabusGroupCount} syllabus group${syllabusGroupCount === 1 ? "" : "s"} across ${response.sections.length} section${response.sections.length === 1 ? "" : "s"}`
         : "No syllabus links exposed by TAMU for this term";
     }
   } catch (error) {

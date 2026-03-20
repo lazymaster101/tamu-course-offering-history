@@ -29,39 +29,151 @@
         </div>
       </nav>
 
-      <header class="hero-card saved-hero">
+      <header class="hero-card compare-hero">
         <div class="hero-copy">
           <p class="eyebrow">Main product feature</p>
           <h1>AI Syllabus Compare</h1>
           <p class="lede">
-            This is the next layer: upload or select syllabi, then have the model compare
-            grading, workload, attendance, projects, exams, and policy differences for a student.
+            Compare 2-5 syllabi in one pass, then ask follow-up questions about grading, workload,
+            exams, attendance, late work, and policy differences.
           </p>
         </div>
 
-        <div class="search-panel saved-overview">
-          <p class="field-label">Status</p>
-          <p class="saved-metric-value">Planned next</p>
+        <div class="search-panel saved-overview compare-overview">
+          <div class="saved-metric">
+            <p class="field-label">Best input</p>
+            <p class="saved-metric-value">PDFs first</p>
+          </div>
+          <div class="saved-metric">
+            <p class="field-label">Quick path</p>
+            <p class="saved-metric-value">Queue from Explore</p>
+          </div>
           <p class="search-note">
-            The saved cart and favorites are now in place so the AI page has a fast source of
-            syllabus candidates to compare.
+            Legacy TAMU PDF links work best. SimpleSyllabus HTML pages usually work too, but direct
+            PDFs carry more detail and layout context.
           </p>
         </div>
       </header>
 
-      <main class="saved-layout">
-        <section class="saved-section-card">
+      <main class="compare-layout">
+        <section class="saved-section-card compare-panel">
           <div class="section-heading">
-            <p class="section-kicker">Next Build</p>
-            <h2>What this page will do</h2>
+            <p class="section-kicker">Sources</p>
+            <h2>Build comparison set</h2>
+            <p class="history-summary">
+              Queue syllabi from the Explore page, upload your own PDFs, or paste public syllabus
+              URLs.
+            </p>
           </div>
-          <div class="empty-state">
-            Compare 2-5 syllabi at once, summarize instructor and policy differences, and answer
-            follow-up questions grounded in the uploaded PDFs.
+
+          <div class="compare-source-toolbar">
+            <p class="compare-helper">You can compare up to 5 sources at once.</p>
+            <button id="clear-queued-sources" class="result-action-button" type="button">
+              Clear queued syllabi
+            </button>
           </div>
+
+          <div id="queued-sources-state" class="empty-state">
+            No queued syllabi yet. From the Explore page, use “Add to AI compare” on any syllabus
+            card.
+          </div>
+          <div id="queued-sources-list" class="compare-source-list" hidden></div>
+
+          <form id="compare-form" class="compare-form">
+            <label class="field-label" for="compare-files">Upload syllabus PDFs</label>
+            <input
+              id="compare-files"
+              name="compare-files"
+              type="file"
+              accept="application/pdf"
+              multiple
+            />
+            <p class="compare-helper">
+              Uploaded PDFs: 2 MB each, 3 MB total on hosted deployments. For bigger files, use a
+              public syllabus URL or queue the syllabus from Explore instead.
+            </p>
+
+            <label class="field-label" for="compare-urls">Paste syllabus URLs</label>
+            <textarea
+              id="compare-urls"
+              name="compare-urls"
+              rows="5"
+              placeholder="One public syllabus URL per line"
+            ></textarea>
+            <p class="compare-helper">
+              Public Howdy syllabus links and direct PDF URLs are the most reliable URL inputs.
+            </p>
+
+            <label class="field-label" for="compare-question">What should the AI compare?</label>
+            <textarea
+              id="compare-question"
+              name="compare-question"
+              rows="6"
+            >Compare these syllabi for workload, grading breakdown, exams, projects, attendance, late work, and which section seems easiest to manage for a student with a heavy semester.</textarea>
+
+            <div class="compare-form-actions">
+              <button id="compare-submit" class="compare-submit-button" type="submit">
+                Compare syllabi
+              </button>
+              <p id="compare-state" class="compare-helper">
+                The first answer can take a bit longer because PDFs need to be processed.
+              </p>
+            </div>
+          </form>
+        </section>
+
+        <section class="saved-section-card compare-panel compare-result-panel">
+          <div class="section-heading">
+            <p class="section-kicker">Answer</p>
+            <h2>Comparison output</h2>
+            <p class="history-summary">
+              After the first answer, you can keep asking targeted follow-up questions against the
+              same comparison context.
+            </p>
+          </div>
+
+          <div id="compare-result-state" class="empty-state">
+            Add at least two syllabus sources, then run a comparison.
+          </div>
+
+          <div id="compare-result" class="compare-result" hidden>
+            <div id="compare-documents" class="compare-document-list"></div>
+            <pre id="compare-answer" class="compare-response"></pre>
+          </div>
+
+          <form id="compare-followup-form" class="compare-followup-form" hidden>
+            <label class="field-label" for="compare-followup-question">Follow-up question</label>
+            <textarea
+              id="compare-followup-question"
+              name="compare-followup-question"
+              rows="4"
+              placeholder="Example: Which syllabus has the harshest late-work policy?"
+            ></textarea>
+            <div class="compare-form-actions">
+              <button id="compare-followup-submit" class="compare-submit-button" type="submit">
+                Ask follow-up
+              </button>
+              <p id="compare-followup-state" class="compare-helper">
+                Follow-ups reuse the same model context from the first comparison.
+              </p>
+            </div>
+          </form>
         </section>
       </main>
     </div>
+
+    <template id="queued-source-template">
+      <article class="compare-source-card">
+        <div class="compare-source-header">
+          <div class="compare-source-primary">
+            <p class="result-code compare-source-course"></p>
+            <h3 class="compare-source-label"></h3>
+            <p class="compare-source-meta"></p>
+          </div>
+          <button class="result-action-button compare-source-remove" type="button">Remove</button>
+        </div>
+      </article>
+    </template>
 
     <script type="module" src="/compare.js"></script>
   </body>

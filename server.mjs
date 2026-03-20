@@ -3,6 +3,7 @@ import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { request as httpsRequest } from "node:https";
 import { dirname, extname, join, resolve, sep } from "node:path";
+import { compareSyllabi } from "./lib/openai-compare.mjs";
 
 const PORT = Number(process.env.PORT ?? 4321);
 const HOWDY_BASE_URL = process.env.HOWDY_BASE_URL ?? "https://howdy.tamu.edu";
@@ -45,13 +46,54 @@ function jsonResponse(response, statusCode, payload) {
   response.end(body);
 }
 
-function textResponse(response, statusCode, body) {
-  response.writeHead(statusCode, {
-    "content-type": "text/plain; charset=utf-8",
-    "cache-control": "no-store",
-    "content-length": Buffer.byteLength(body)
+async function readJsonRequestBody(request, maxBytes = 16 * 1024 * 1024) {
+  return new Promise((resolvePromise, rejectPromise) => {
+    const chunks = [];
+    let totalBytes = 0;
+    let isTooLarge = false;
+
+    request.on("data", (chunk) => {
+      if (isTooLarge) {
+        return;
+      }
+
+      totalBytes += chunk.length;
+
+      if (totalBytes > maxBytes) {
+        isTooLarge = true;
+        const error = new Error("Request body is too large.");
+        error.statusCode = 413;
+        rejectPromise(error);
+        request.resume();
+        return;
+      }
+
+      chunks.push(chunk);
+    });
+
+    request.on("end", () => {
+      if (isTooLarge) {
+        return;
+      }
+
+      const rawBody = Buffer.concat(chunks).toString("utf8").trim();
+
+      if (!rawBody) {
+        resolvePromise({});
+        return;
+      }
+
+      try {
+        resolvePromise(JSON.parse(rawBody));
+      } catch {
+        const error = new Error("Request body must be valid JSON.");
+        error.statusCode = 400;
+        rejectPromise(error);
+      }
+    });
+
+    request.on("error", rejectPromise);
   });
-  response.end(body);
 }
 
 async function readJsonFile(filePath) {
@@ -892,10 +934,30 @@ async function handleApi(request, response, url) {
       return;
     }
 
+    if (url.pathname === "/api/compare-syllabi") {
+      if (request.method !== "POST") {
+        jsonResponse(response, 405, { error: "Method Not Allowed" });
+        return;
+      }
+
+      const payload = await readJsonRequestBody(request);
+      const protocol = request.headers["x-forwarded-proto"] ?? "http";
+      const requestOrigin = `${protocol}://${request.headers.host}`;
+      const result = await compareSyllabi({
+        items: payload?.items,
+        question: payload?.question,
+        previousResponseId: payload?.previousResponseId,
+        requestOrigin
+      });
+
+      jsonResponse(response, 200, result);
+      return;
+    }
+
     jsonResponse(response, 404, { error: "Unknown API route." });
   } catch (error) {
     console.error(error);
-    jsonResponse(response, 500, {
+    jsonResponse(response, error.statusCode ?? 500, {
       error: error.message || "Unexpected server error."
     });
   }

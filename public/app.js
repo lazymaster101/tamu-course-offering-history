@@ -4,6 +4,10 @@ import {
   removeCourse,
   formatSavedCourseCode
 } from "./saved-courses.js";
+import {
+  hasCompareSource,
+  saveCompareSource
+} from "./compare-sources.js";
 import { startSavedCourseBadgeSync } from "./page-shell.js";
 
 const state = {
@@ -318,7 +322,42 @@ function createGroupedSectionItem(section) {
   return item;
 }
 
-function createSyllabusGroupCard(group) {
+function formatCompareSectionsLabel(sections) {
+  return `Sections ${formatSectionList(sections)}`;
+}
+
+function buildCompareSource(group, courseContext) {
+  const representativeSection = group.representativeSection;
+  const honorsLabel = group.isHonors ? "Honors" : "Standard";
+
+  return {
+    url: resolveSyllabusTargetUrl(representativeSection),
+    label: [
+      `${courseContext.subject} ${courseContext.courseNumber}`,
+      courseContext.termDescription,
+      group.instructorLabel,
+      honorsLabel
+    ]
+      .filter(Boolean)
+      .join(" • "),
+    subject: courseContext.subject,
+    courseNumber: courseContext.courseNumber,
+    termCode: courseContext.termCode,
+    termDescription: courseContext.termDescription,
+    crn: representativeSection.crn,
+    instructorLabel: group.instructorLabel,
+    honorsLabel,
+    sectionsLabel: formatCompareSectionsLabel(group.sections)
+  };
+}
+
+function setCompareButtonState(button, compareSource) {
+  const isQueued = hasCompareSource(compareSource);
+  button.textContent = isQueued ? "Queued for AI" : "Add to AI compare";
+  button.classList.toggle("is-active", isQueued);
+}
+
+function createSyllabusGroupCard(group, courseContext) {
   const wrapper = document.createElement("article");
   wrapper.className = "section-row syllabus-group-card";
 
@@ -384,12 +423,24 @@ function createSyllabusGroupCard(group) {
   wrapper.append(sectionList);
 
   if (group.representativeSection) {
+    const compareSource = buildCompareSource(group, courseContext);
     const syllabusButton = document.createElement("button");
     syllabusButton.className = "section-link";
     syllabusButton.type = "button";
     syllabusButton.textContent =
       group.sections.length > 1 ? "Open shared syllabus" : "Open syllabus";
     wrapper.append(syllabusButton);
+
+    if (compareSource.url) {
+      const compareButton = document.createElement("a");
+      compareButton.className = "result-action-button compare-link-button";
+      compareButton.href = "/compare.html";
+      setCompareButtonState(compareButton, compareSource);
+      compareButton.addEventListener("click", () => {
+        saveCompareSource(compareSource);
+      });
+      wrapper.append(compareButton);
+    }
 
     const syllabusState = document.createElement("p");
     syllabusState.className = "section-detail section-status";
@@ -529,7 +580,15 @@ async function loadSections(subject, courseNumber, termCode, container, button, 
 
     const groupedSections = groupSectionsBySyllabus(response.sections);
     groupedSections.forEach((group) => {
-      container.append(createSyllabusGroupCard(group));
+      container.append(
+        createSyllabusGroupCard(group, {
+          subject,
+          courseNumber,
+          termCode,
+          termDescription:
+            card?.querySelector(".term-title")?.textContent || termCode
+        })
+      );
     });
 
     const syllabusGroupCount = groupedSections.filter(

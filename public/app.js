@@ -168,30 +168,10 @@ async function fetchSyllabusInfo(section) {
   );
 }
 
-async function fetchSyllabusPdf(section) {
-  const response = await fetch(
-    `/api/course-syllabus-pdf?term=${encodeURIComponent(section.termCode)}&crn=${encodeURIComponent(
-      section.crn
-    )}`
-  );
-
-  if (!response.ok) {
-    let errorMessage = "Could not load the syllabus PDF.";
-
-    try {
-      const payload = await response.json();
-      errorMessage = payload.error || errorMessage;
-    } catch {
-      const fallbackMessage = await response.text();
-      if (fallbackMessage) {
-        errorMessage = fallbackMessage;
-      }
-    }
-
-    throw new Error(errorMessage);
-  }
-
-  return response.blob();
+function buildLegacySyllabusPdfUrl(section) {
+  return `/api/course-syllabus-pdf?term=${encodeURIComponent(
+    section.termCode
+  )}&crn=${encodeURIComponent(section.crn)}`;
 }
 
 async function openSyllabus(section, button, statusNode) {
@@ -223,18 +203,13 @@ async function openSyllabus(section, button, statusNode) {
     }
 
     if (syllabusInfo.selectionType === "F") {
-      const pdfBlob = await fetchSyllabusPdf(section);
-      const objectUrl = URL.createObjectURL(pdfBlob);
+      const pdfUrl = buildLegacySyllabusPdfUrl(section);
 
       if (popup) {
-        popup.location.replace(objectUrl);
+        popup.location.replace(pdfUrl);
       } else {
-        window.open(objectUrl, "_blank", "noreferrer");
+        window.open(pdfUrl, "_blank", "noreferrer");
       }
-
-      window.setTimeout(() => {
-        URL.revokeObjectURL(objectUrl);
-      }, 60_000);
       return;
     }
 

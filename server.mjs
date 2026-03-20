@@ -150,25 +150,6 @@ async function fetchHowdyJson(path, options = {}) {
   return response.json();
 }
 
-async function fetchHowdyBinary(path, options = {}) {
-  const response = await fetchHowdy(path, {
-    ...options,
-    headers: {
-      accept: "application/pdf, application/octet-stream;q=0.9, */*;q=0.8",
-      ...(options.headers ?? {})
-    }
-  });
-
-  const arrayBuffer = await response.arrayBuffer();
-
-  return {
-    buffer: Buffer.from(arrayBuffer),
-    contentType: response.headers.get("content-type") ?? "application/octet-stream",
-    contentDisposition: response.headers.get("content-disposition"),
-    contentLength: response.headers.get("content-length")
-  };
-}
-
 function inferCampus(termDescription) {
   const description = termDescription.toLowerCase();
 
@@ -602,16 +583,12 @@ function serveFile(response, filePath) {
   createReadStream(filePath).pipe(response);
 }
 
-function binaryResponse(response, statusCode, payload) {
+function redirectResponse(response, statusCode, location) {
   response.writeHead(statusCode, {
-    "content-type": payload.contentType,
-    "cache-control": "no-store",
-    ...(payload.contentDisposition
-      ? { "content-disposition": payload.contentDisposition }
-      : {}),
-    "content-length": payload.buffer.byteLength
+    location,
+    "cache-control": "no-store"
   });
-  response.end(payload.buffer);
+  response.end();
 }
 
 async function handleApi(request, response, url) {
@@ -727,11 +704,11 @@ async function handleApi(request, response, url) {
         return;
       }
 
-      const pdfPayload = await fetchHowdyBinary(
-        `/api/course-syllabus-pdf?termCode=${encodeURIComponent(termCode)}&crn=${encodeURIComponent(crn)}`
-      );
+      const targetUrl = `${HOWDY_BASE_URL}/api/course-syllabus-pdf?termCode=${encodeURIComponent(
+        termCode
+      )}&crn=${encodeURIComponent(crn)}`;
 
-      binaryResponse(response, 200, pdfPayload);
+      redirectResponse(response, 307, targetUrl);
       return;
     }
 

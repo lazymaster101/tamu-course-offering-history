@@ -12,8 +12,23 @@
     />
     <link rel="stylesheet" href="/styles.css" />
   </head>
-  <body>
+  <body data-page="explore">
     <div class="page-shell">
+      <nav class="utility-bar" aria-label="Primary">
+        <a class="utility-link is-active" href="/">Explore</a>
+        <div class="utility-bar-links">
+          <a class="utility-link" href="/saved.html#cart">
+            Cart
+            <span id="cart-count-badge" class="utility-count">0</span>
+          </a>
+          <a class="utility-link" href="/saved.html#favorites">
+            Favorites
+            <span id="favorite-count-badge" class="utility-count">0</span>
+          </a>
+          <a class="utility-link" href="/compare.html">AI Compare</a>
+        </div>
+      </nav>
+
       <header class="hero-card">
         <div class="hero-copy">
           <p class="eyebrow">TAMU Public Class Search, fixed</p>
@@ -88,6 +103,12 @@
           <span class="result-title"></span>
           <span class="result-meta"></span>
         </button>
+        <div class="result-actions">
+          <button class="result-action-button result-cart-button" type="button">Add to cart</button>
+          <button class="result-action-button result-favorite-button" type="button">
+            Favorite
+          </button>
+        </div>
       </article>
     </template>
 

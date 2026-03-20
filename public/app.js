@@ -1,3 +1,11 @@
+import {
+  hasSavedCourse,
+  saveCourse,
+  removeCourse,
+  formatSavedCourseCode
+} from "./saved-courses.js";
+import { startSavedCourseBadgeSync } from "./page-shell.js";
+
 const state = {
   activeCourseKey: null,
   activeCampus: "college-station"
@@ -55,8 +63,56 @@ function formatCourseCode(subject, courseNumber) {
   return `${subject} ${courseNumber}`;
 }
 
+function getSavedCampusLabel(course) {
+  if (state.activeCampus === "all") {
+    return "All Terms";
+  }
+
+  if (Array.isArray(course.campusLabels) && course.campusLabels.length === 1) {
+    return course.campusLabels[0];
+  }
+
+  return Array.isArray(course.campusLabels) && course.campusLabels.length
+    ? course.campusLabels.join(" • ")
+    : "College Station";
+}
+
+function toSavedCourse(course) {
+  return {
+    subject: course.subject,
+    courseNumber: course.courseNumber,
+    title: course.title,
+    campus: state.activeCampus,
+    campusLabel: getSavedCampusLabel(course),
+    latestTermCode: course.latestTermCode ?? null,
+    latestTermDescription: course.latestTermDescription ?? null,
+    offeringCount: course.offeringCount ?? null
+  };
+}
+
 function formatCampuses(labels) {
   return labels.join(" • ");
+}
+
+function setResultActionState(button, isActive, activeLabel, inactiveLabel) {
+  button.textContent = isActive ? activeLabel : inactiveLabel;
+  button.classList.toggle("is-active", isActive);
+}
+
+function updateCourseSaveControls(course, cartButton, favoriteButton) {
+  const savedCourse = toSavedCourse(course);
+  setResultActionState(
+    cartButton,
+    hasSavedCourse("cart", savedCourse),
+    "In cart",
+    "Add to cart"
+  );
+  setResultActionState(
+    favoriteButton,
+    hasSavedCourse("favorites", savedCourse),
+    "Favorited",
+    "Favorite"
+  );
 }
 
 function renderResults(results) {
@@ -73,6 +129,8 @@ function renderResults(results) {
   for (const course of results) {
     const fragment = elements.courseTemplate.content.cloneNode(true);
     const button = fragment.querySelector(".result-button");
+    const cartButton = fragment.querySelector(".result-cart-button");
+    const favoriteButton = fragment.querySelector(".result-favorite-button");
     const key = `${course.subject}-${course.courseNumber}`;
 
     fragment.querySelector(".result-code").textContent = formatCourseCode(
@@ -86,10 +144,36 @@ function renderResults(results) {
       button.classList.add("is-active");
     }
 
+    updateCourseSaveControls(course, cartButton, favoriteButton);
+
     button.addEventListener("click", () => {
       state.activeCourseKey = key;
       renderResults(results);
       loadHistory(course.subject, course.courseNumber);
+    });
+
+    cartButton.addEventListener("click", () => {
+      const savedCourse = toSavedCourse(course);
+
+      if (hasSavedCourse("cart", savedCourse)) {
+        removeCourse("cart", savedCourse);
+      } else {
+        saveCourse("cart", savedCourse);
+      }
+
+      renderResults(results);
+    });
+
+    favoriteButton.addEventListener("click", () => {
+      const savedCourse = toSavedCourse(course);
+
+      if (hasSavedCourse("favorites", savedCourse)) {
+        removeCourse("favorites", savedCourse);
+      } else {
+        saveCourse("favorites", savedCourse);
+      }
+
+      renderResults(results);
     });
 
     elements.resultsList.append(fragment);
@@ -404,6 +488,14 @@ function formatHistorySummary(history) {
   return `${history.totalOfferedTerms} offered terms • ${oldestTerm.termDescription} through ${newestTerm.termDescription}${campusLabel ? ` • ${campusLabel}` : ""}`;
 }
 
+function updateExplorerUrl(subject, courseNumber) {
+  const nextUrl = new URL(window.location.href);
+  nextUrl.searchParams.set("subject", subject);
+  nextUrl.searchParams.set("course", courseNumber);
+  nextUrl.searchParams.set("campus", state.activeCampus);
+  window.history.replaceState({}, "", nextUrl);
+}
+
 async function loadSections(subject, courseNumber, termCode, container, button, card, hint) {
   container.hidden = false;
   container.innerHTML = `<div class="empty-state loading">Loading sections…</div>`;
@@ -536,6 +628,7 @@ function renderHistory(history) {
 
 async function loadHistory(subject, courseNumber) {
   showHistoryState("Loading semester history...", formatCourseCode(subject, courseNumber));
+  updateExplorerUrl(subject, courseNumber);
 
   try {
     const history = await fetchJson(
@@ -591,4 +684,55 @@ async function handleSearch(event) {
   }
 }
 
+async function initializeFromUrl() {
+  const url = new URL(window.location.href);
+  const subject = url.searchParams.get("subject")?.trim().toUpperCase();
+  const courseNumber = url.searchParams.get("course")?.trim().toUpperCase();
+  const campus = url.searchParams.get("campus")?.trim().toLowerCase();
+
+  if (campus) {
+    state.activeCampus = campus;
+    elements.campus.value = campus;
+  }
+
+  if (!subject || !courseNumber) {
+    return;
+  }
+
+  const query = formatSavedCourseCode({ subject, courseNumber });
+  elements.query.value = query;
+  showResultsState("Loading shared course link...");
+  showHistoryState("Loading semester history...");
+  setLoading(elements.searchButton, true, "Working...");
+
+  try {
+    const payload = await fetchJson(
+      `/api/search-courses?q=${encodeURIComponent(query)}&campus=${encodeURIComponent(
+        state.activeCampus
+      )}`
+    );
+    const exactMatch = payload.results.find(
+      (course) => course.subject === subject && course.courseNumber === courseNumber
+    );
+
+    renderResults(payload.results);
+
+    if (!exactMatch) {
+      showHistoryState(`No offered terms found for ${query}.`, query);
+      return;
+    }
+
+    state.activeCourseKey = `${subject}-${courseNumber}`;
+    renderResults(payload.results);
+    await loadHistory(subject, courseNumber);
+  } catch (error) {
+    showResultsState(error.message);
+    showHistoryState("Could not load the shared course link.", query);
+  } finally {
+    setLoading(elements.searchButton, false, "Search offerings");
+  }
+}
+
 elements.form.addEventListener("submit", handleSearch);
+startSavedCourseBadgeSync();
+initializeFromUrl();

@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI Compare | TAMU Course Offering History</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body data-page="compare">
+    <div class="page-shell">
+      <nav class="utility-bar" aria-label="Primary">
+        <a class="utility-link" href="/">Explore</a>
+        <div class="utility-bar-links">
+          <a class="utility-link" href="/saved.html#cart">
+            Cart
+            <span id="cart-count-badge" class="utility-count">0</span>
+          </a>
+          <a class="utility-link" href="/saved.html#favorites">
+            Favorites
+            <span id="favorite-count-badge" class="utility-count">0</span>
+          </a>
+          <a class="utility-link is-active" href="/compare.html">AI Compare</a>
+        </div>
+      </nav>
+
+      <header class="hero-card saved-hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Main product feature</p>
+          <h1>AI Syllabus Compare</h1>
+          <p class="lede">
+            This is the next layer: upload or select syllabi, then have the model compare
+            grading, workload, attendance, projects, exams, and policy differences for a student.
+          </p>
+        </div>
+
+        <div class="search-panel saved-overview">
+          <p class="field-label">Status</p>
+          <p class="saved-metric-value">Planned next</p>
+          <p class="search-note">
+            The saved cart and favorites are now in place so the AI page has a fast source of
+            syllabus candidates to compare.
+          </p>
+        </div>
+      </header>
+
+      <main class="saved-layout">
+        <section class="saved-section-card">
+          <div class="section-heading">
+            <p class="section-kicker">Next Build</p>
+            <h2>What this page will do</h2>
+          </div>
+          <div class="empty-state">
+            Compare 2-5 syllabi at once, summarize instructor and policy differences, and answer
+            follow-up questions grounded in the uploaded PDFs.
+          </div>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="/compare.js"></script>
+  </body>
+</html>

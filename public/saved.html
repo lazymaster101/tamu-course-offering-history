@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Saved Classes | TAMU Course Offering History</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body data-page="saved">
+    <div class="page-shell">
+      <nav class="utility-bar" aria-label="Primary">
+        <a class="utility-link" href="/">Explore</a>
+        <div class="utility-bar-links">
+          <a class="utility-link is-active" href="/saved.html#cart">
+            Cart
+            <span id="cart-count-badge" class="utility-count">0</span>
+          </a>
+          <a class="utility-link" href="/saved.html#favorites">
+            Favorites
+            <span id="favorite-count-badge" class="utility-count">0</span>
+          </a>
+          <a class="utility-link" href="/compare.html">AI Compare</a>
+        </div>
+      </nav>
+
+      <header class="hero-card saved-hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Your shortlist</p>
+          <h1>Saved Classes</h1>
+          <p class="lede">
+            Keep likely schedules in your cart, keep long-term references in favorites,
+            and jump straight back into term-by-term syllabus history.
+          </p>
+        </div>
+
+        <div class="search-panel saved-overview">
+          <div class="saved-metric">
+            <p class="field-label">Cart</p>
+            <p id="cart-count-summary" class="saved-metric-value">0</p>
+          </div>
+          <div class="saved-metric">
+            <p class="field-label">Favorites</p>
+            <p id="favorite-count-summary" class="saved-metric-value">0</p>
+          </div>
+          <p class="search-note">
+            Each saved class opens back into the main explorer with its offering history ready
+            to scan.
+          </p>
+        </div>
+      </header>
+
+      <main class="saved-layout">
+        <section id="cart" class="saved-section-card">
+          <div class="section-heading">
+            <p class="section-kicker">Saved Cart</p>
+            <h2>Your current picks</h2>
+            <p class="history-summary">
+              Use the cart for classes you are actively comparing this semester.
+            </p>
+          </div>
+          <div id="cart-state" class="empty-state">
+            Your cart is empty. Add classes from the explorer to build a quick syllabus shortlist.
+          </div>
+          <div id="cart-list" class="saved-course-list" hidden></div>
+        </section>
+
+        <section id="favorites" class="saved-section-card">
+          <div class="section-heading">
+            <p class="section-kicker">Favorites</p>
+            <h2>Long-term references</h2>
+            <p class="history-summary">
+              Favorites are for classes you revisit often and want one-click access to later.
+            </p>
+          </div>
+          <div id="favorites-state" class="empty-state">
+            No favorites yet. Mark classes from the explorer so you can pull them back up fast.
+          </div>
+          <div id="favorites-list" class="saved-course-list" hidden></div>
+        </section>
+      </main>
+    </div>
+
+    <template id="saved-course-template">
+      <article class="saved-course-card">
+        <div class="saved-course-header">
+          <div class="saved-course-primary">
+            <p class="result-code saved-course-code"></p>
+            <h3 class="saved-course-title"></h3>
+          </div>
+          <div class="saved-course-tags"></div>
+        </div>
+        <p class="saved-course-meta"></p>
+        <div class="saved-course-actions">
+          <a class="saved-course-link" target="_self">Open offerings</a>
+          <button class="result-action-button saved-toggle-cart" type="button"></button>
+          <button class="result-action-button saved-toggle-favorite" type="button"></button>
+        </div>
+      </article>
+    </template>
+
+    <script type="module" src="/saved.js"></script>
+  </body>
+</html>

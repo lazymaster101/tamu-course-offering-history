@@ -6,7 +6,7 @@ import { dirname, extname, join, resolve, sep } from "node:path";
 const PORT = Number(process.env.PORT ?? 4321);
 const HOWDY_BASE_URL = process.env.HOWDY_BASE_URL ?? "https://howdy.tamu.edu";
 const CACHE_TTL_MS = 1000 * 60 * 60 * 12;
-const CONCURRENCY = 3;
+const CONCURRENCY = 2;
 const REQUEST_RETRIES = 3;
 const RETRY_DELAY_MS = 350;
 
@@ -336,6 +336,11 @@ async function buildCatalogIndex(campus = "all") {
 
   for (const { term, rows } of catalogResults) {
     for (const row of rows) {
+      const sectionsCount = Number(row.SECTIONS_COUNT ?? 0);
+      if (sectionsCount < 1) {
+        continue;
+      }
+
       entries.push({
         termCode: term.code,
         termDescription: term.description,
@@ -343,11 +348,8 @@ async function buildCatalogIndex(campus = "all") {
         subject: row.SCBCRKY_SUBJ_CODE,
         courseNumber: row.SCBCRKY_CRSE_NUMB,
         title: row.COURSE_TITLE || row.SCBCRSE_TITLE,
-        sectionsCount: Number(row.SECTIONS_COUNT ?? 0),
-        college: row.COLL_DESC,
-        narrative: row.COURSE_NARRATIVE,
-        courseAttributes: row.COURSE_ATTRIBUTES,
-        courseLevels: row.COURSE_LEVELS
+        sectionsCount,
+        college: row.COLL_DESC
       });
     }
   }
@@ -399,8 +401,7 @@ function searchCourses(index, query, campus) {
       entry.subject,
       entry.courseNumber,
       entry.title,
-      entry.college ?? "",
-      entry.narrative ?? ""
+      entry.college ?? ""
     ]
       .join(" ")
       .toLowerCase();

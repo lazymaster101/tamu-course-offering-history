@@ -2,7 +2,7 @@ import { mkdir, writeFile } from "node:fs/promises";
 import { dirname, join } from "node:path";
 
 const HOWDY_BASE_URL = process.env.HOWDY_BASE_URL ?? "https://howdy.tamu.edu";
-const CONCURRENCY = 3;
+const CONCURRENCY = 2;
 const REQUEST_RETRIES = 3;
 const RETRY_DELAY_MS = 350;
 const OUTPUT_FILE = join(process.cwd(), "data", "catalog-index.json");
@@ -70,30 +70,6 @@ async function fetchHowdyJson(path, options = {}) {
   }
 }
 
-async function mapWithConcurrency(items, concurrency, mapper) {
-  const results = new Array(items.length);
-  let cursor = 0;
-
-  async function worker() {
-    while (true) {
-      const index = cursor;
-      cursor += 1;
-
-      if (index >= items.length) {
-        return;
-      }
-
-      results[index] = await mapper(items[index], index);
-    }
-  }
-
-  await Promise.all(
-    Array.from({ length: Math.min(concurrency, items.length) }, () => worker())
-  );
-
-  return results;
-}
-
 async function fetchTerms() {
   const allTerms = await fetchHowdyJson("/api/all-terms");
 
@@ -118,39 +94,43 @@ async function fetchCatalogForTerm(termCode) {
 
 async function buildCatalogIndex() {
   const terms = await fetchTerms();
+  const entries = [];
 
   console.log(`Building catalog index from ${terms.length} TAMU terms...`);
 
-  const catalogResults = await mapWithConcurrency(terms, CONCURRENCY, async (term, index) => {
+  for (let index = 0; index < terms.length; index += 1) {
+    const term = terms[index];
+
     try {
       const rows = await fetchCatalogForTerm(term.code);
-      console.log(`[${index + 1}/${terms.length}] ${term.code} ${term.description}: ${rows.length} rows`);
-      return { term, rows };
+      let offeredCount = 0;
+
+      for (const row of rows) {
+        const sectionsCount = Number(row.SECTIONS_COUNT ?? 0);
+        if (sectionsCount < 1) {
+          continue;
+        }
+
+        entries.push({
+          termCode: term.code,
+          termDescription: term.description,
+          campus: term.campus,
+          subject: row.SCBCRKY_SUBJ_CODE,
+          courseNumber: row.SCBCRKY_CRSE_NUMB,
+          title: row.COURSE_TITLE || row.SCBCRSE_TITLE,
+          sectionsCount,
+          college: row.COLL_DESC
+        });
+        offeredCount += 1;
+      }
+
+      console.log(
+        `[${index + 1}/${terms.length}] ${term.code} ${term.description}: ${offeredCount} offered rows`
+      );
     } catch (error) {
       console.warn(
         `[${index + 1}/${terms.length}] Skipping ${term.code} ${term.description}: ${error.message}`
       );
-      return { term, rows: [] };
-    }
-  });
-
-  const entries = [];
-
-  for (const { term, rows } of catalogResults) {
-    for (const row of rows) {
-      entries.push({
-        termCode: term.code,
-        termDescription: term.description,
-        campus: term.campus,
-        subject: row.SCBCRKY_SUBJ_CODE,
-        courseNumber: row.SCBCRKY_CRSE_NUMB,
-        title: row.COURSE_TITLE || row.SCBCRSE_TITLE,
-        sectionsCount: Number(row.SECTIONS_COUNT ?? 0),
-        college: row.COLL_DESC,
-        narrative: row.COURSE_NARRATIVE,
-        courseAttributes: row.COURSE_ATTRIBUTES,
-        courseLevels: row.COURSE_LEVELS
-      });
     }
   }
 

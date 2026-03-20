@@ -1,4 +1,3 @@
 .cache/
-data/catalog-index.json
 class-search-ui-element.js
 term-selection-ui-element.js

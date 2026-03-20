@@ -4,10 +4,11 @@
   "private": true,
   "type": "module",
   "engines": {
-    "node": ">=20"
+    "node": "22.x"
   },
   "scripts": {
-    "build": "node scripts/build-catalog-index.mjs",
+    "build": "node scripts/verify-catalog-index.mjs",
+    "build:index": "node scripts/build-catalog-index.mjs",
     "start": "node server.mjs"
   }
 }

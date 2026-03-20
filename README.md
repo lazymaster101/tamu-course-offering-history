@@ -40,5 +40,7 @@ This project can also run on Vercel as static files plus Node functions.
 - Vercel will serve `public/` as the frontend.
 - The API routes live under `api/`.
 - `vercel.json` runs `npm run build` during deployment and bundles `data/catalog-index.json` into the functions.
+- `npm run build` only verifies the checked-in catalog snapshot.
+- `npm run build:index` refreshes the catalog snapshot from TAMU when you want to update the deployed data.
 
 If you deploy from GitHub, Vercel should pick up the config automatically.

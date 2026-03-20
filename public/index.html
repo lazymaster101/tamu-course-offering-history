@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>TAMU Course Offering History</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <header class="hero-card">
+        <div class="hero-copy">
+          <p class="eyebrow">TAMU Public Class Search, fixed</p>
+          <h1>TAMU Course Offering History</h1>
+          <p class="lede">
+            Search once, then scan every semester a course was offered without
+            bouncing across TAMU's term selector over and over.
+          </p>
+        </div>
+
+        <form id="search-form" class="search-panel">
+          <label class="field-label" for="query">Course or title</label>
+          <input
+            id="query"
+            name="query"
+            type="text"
+            placeholder='Try "CSCE 121" or "intro accounting"'
+            autocomplete="off"
+          />
+
+          <label class="field-label" for="campus">Campus scope</label>
+          <select id="campus" name="campus">
+            <option value="college-station">College Station</option>
+            <option value="all">All terms</option>
+            <option value="galveston">Galveston</option>
+            <option value="qatar">Qatar</option>
+          </select>
+
+          <button type="submit" id="search-button">Search offerings</button>
+
+          <p class="search-note">
+            Open any term to load its sections and any syllabus links TAMU still
+            exposes for that offering.
+          </p>
+        </form>
+      </header>
+
+      <main class="layout">
+        <section class="results-card">
+          <div class="section-heading">
+            <p class="section-kicker">Matches</p>
+            <h2>Course results</h2>
+          </div>
+          <div id="results-state" class="empty-state">
+            Search for a course code or a title fragment to start building a
+            semester history.
+          </div>
+          <div id="results-list" class="results-list" hidden></div>
+        </section>
+
+        <section class="history-card">
+          <div class="section-heading">
+            <p class="section-kicker">Offerings</p>
+            <h2 id="history-title">Pick a course</h2>
+            <p id="history-summary" class="history-summary">
+              Previous offerings will show up here as a compact term-by-term timeline.
+            </p>
+          </div>
+          <div id="history-state" class="empty-state">
+            Matching courses will appear on the left. Select one to load its
+            full term history and section-level details.
+          </div>
+          <div id="history-list" class="history-list" hidden></div>
+        </section>
+      </main>
+    </div>
+
+    <template id="course-result-template">
+      <article class="result-item">
+        <button class="result-button" type="button">
+          <span class="result-code"></span>
+          <span class="result-title"></span>
+          <span class="result-meta"></span>
+        </button>
+      </article>
+    </template>
+
+    <template id="term-card-template">
+      <details class="term-card">
+        <summary class="term-summary">
+          <span class="term-primary">
+            <span class="term-code"></span>
+            <span class="term-title"></span>
+            <span class="term-meta"></span>
+          </span>
+          <span class="term-summary-meta">
+            <span class="term-hint">Open to load sections and syllabus links</span>
+          </span>
+        </summary>
+        <div class="term-panel">
+          <p class="term-narrative"></p>
+          <button class="term-button" type="button">Refresh sections</button>
+          <div class="term-sections" hidden></div>
+        </div>
+      </details>
+    </template>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>

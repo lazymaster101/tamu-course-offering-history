@@ -32,3 +32,13 @@ Use a Node web service.
 - Start command: `npm start`
 
 The build step generates `data/catalog-index.json` from TAMU's public catalog APIs so production searches do not time out on the first user request.
+
+## Deploy on Vercel
+
+This project can also run on Vercel as static files plus Node functions.
+
+- Vercel will serve `public/` as the frontend.
+- The API routes live under `api/`.
+- `vercel.json` runs `npm run build` during deployment and bundles `data/catalog-index.json` into the functions.
+
+If you deploy from GitHub, Vercel should pick up the config automatically.

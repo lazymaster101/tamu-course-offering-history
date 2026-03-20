@@ -1,6 +1,7 @@
 import { createReadStream } from "node:fs";
 import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
+import { request as httpsRequest } from "node:https";
 import { dirname, extname, join, resolve, sep } from "node:path";
 
 const PORT = Number(process.env.PORT ?? 4321);
@@ -9,6 +10,7 @@ const CACHE_TTL_MS = 1000 * 60 * 60 * 12;
 const CONCURRENCY = 2;
 const REQUEST_RETRIES = 3;
 const RETRY_DELAY_MS = 350;
+const HOWDY_INFO_TIMEOUT_MS = 8000;
 
 const PUBLIC_DIR = join(process.cwd(), "public");
 const CACHE_DIR = join(process.cwd(), ".cache");
@@ -148,6 +150,126 @@ async function fetchHowdyJson(path, options = {}) {
   });
 
   return response.json();
+}
+
+function buildSimpleSyllabusUrl(termCode, crn) {
+  return `https://tamu.simplesyllabus.com/ui/syllabus-redirect?type=html&attribute[4]=${encodeURIComponent(
+    crn
+  )}.${encodeURIComponent(termCode)}`;
+}
+
+function buildLegacyPublicSyllabusPdfUrl(termCode, crn) {
+  return `${HOWDY_BASE_URL}/main/api/class-search/syllabus-pdf?crn=${encodeURIComponent(
+    crn
+  )}&term=${encodeURIComponent(termCode)}`;
+}
+
+function buildOpenSyllabusPath(termCode, crn) {
+  return `/api/open-syllabus?term=${encodeURIComponent(termCode)}&crn=${encodeURIComponent(crn)}`;
+}
+
+function isValidLegacyLinkTarget(linkUrl) {
+  if (!linkUrl) {
+    return false;
+  }
+
+  try {
+    const parsed = new URL(linkUrl);
+    return parsed.protocol === "https:" || parsed.protocol === "http:";
+  } catch {
+    return false;
+  }
+}
+
+async function fetchHowdyInfoJson(path) {
+  for (let attempt = 0; attempt <= REQUEST_RETRIES; attempt += 1) {
+    try {
+      const targetUrl = new URL(path, HOWDY_BASE_URL);
+      const payload = await new Promise((resolvePromise, rejectPromise) => {
+        const request = httpsRequest(
+          targetUrl,
+          {
+            method: "GET",
+            headers: {
+              accept: "application/json",
+              connection: "close",
+              "user-agent": "tamu-course-offering-history/1.0"
+            }
+          },
+          (response) => {
+            const chunks = [];
+
+            response.on("data", (chunk) => {
+              chunks.push(chunk);
+            });
+
+            response.on("end", () => {
+              const body = Buffer.concat(chunks).toString("utf8");
+              const statusCode = response.statusCode ?? 0;
+
+              if (statusCode < 200 || statusCode >= 300) {
+                const error = new Error(
+                  `${statusCode} ${response.statusMessage ?? "Request failed"}: ${body.slice(0, 300)}`
+                );
+                error.statusCode = statusCode;
+                rejectPromise(error);
+                return;
+              }
+
+              try {
+                resolvePromise(JSON.parse(body));
+              } catch (error) {
+                rejectPromise(error);
+              }
+            });
+
+            response.on("error", rejectPromise);
+          }
+        );
+
+        request.setTimeout(HOWDY_INFO_TIMEOUT_MS, () => {
+          const error = new Error("Howdy syllabus info request timed out.");
+          error.statusCode = 0;
+          request.destroy(error);
+        });
+
+        request.on("error", rejectPromise);
+        request.end();
+      });
+
+      return payload;
+    } catch (error) {
+      if (!shouldRetryHowdyRequest(error, attempt)) {
+        throw error;
+      }
+
+      await wait(RETRY_DELAY_MS * (attempt + 1));
+    }
+  }
+}
+
+async function resolveLegacySyllabusTarget(termCode, crn) {
+  const fallbackUrl = buildLegacyPublicSyllabusPdfUrl(termCode, crn);
+
+  try {
+    const syllabusInfo = await fetchHowdyInfoJson(
+      `/api/course-syllabus-info?termCode=${encodeURIComponent(termCode)}&crn=${encodeURIComponent(crn)}`
+    );
+
+    if (
+      syllabusInfo.SWRFASY_SEL_TYPE === "L" &&
+      isValidLegacyLinkTarget(syllabusInfo.SWRFASY_URL_LINK)
+    ) {
+      return syllabusInfo.SWRFASY_URL_LINK;
+    }
+
+    return fallbackUrl;
+  } catch (error) {
+    console.warn(
+      `Falling back to public syllabus PDF for ${termCode}/${crn}: ${error.message}`
+    );
+    return fallbackUrl;
+  }
 }
 
 function inferCampus(termDescription) {
@@ -548,6 +670,12 @@ function mapSectionRow(row) {
           ? "simple-syllabus"
           : "legacy"
         : null,
+    syllabusUrl:
+      row.SWV_CLASS_SEARCH_HAS_SYL_IND === "Y"
+        ? Number(row.SWV_CLASS_SEARCH_TERM) >= 202631
+          ? buildSimpleSyllabusUrl(row.SWV_CLASS_SEARCH_TERM, row.SWV_CLASS_SEARCH_CRN)
+          : buildOpenSyllabusPath(row.SWV_CLASS_SEARCH_TERM, row.SWV_CLASS_SEARCH_CRN)
+        : null,
     attributes:
       row.SWV_CLASS_SEARCH_ATTRIBUTES?.split("|").map((attribute) => attribute.trim()) ?? [],
     instructors,
@@ -708,6 +836,27 @@ async function handleApi(request, response, url) {
         termCode
       )}&crn=${encodeURIComponent(crn)}`;
 
+      redirectResponse(response, 307, targetUrl);
+      return;
+    }
+
+    if (url.pathname === "/api/open-syllabus") {
+      const termCode = url.searchParams.get("term")?.trim();
+      const crn = url.searchParams.get("crn")?.trim();
+
+      if (!termCode || !crn) {
+        jsonResponse(response, 400, {
+          error: "Missing term or crn query parameter."
+        });
+        return;
+      }
+
+      if (Number(termCode) >= 202631) {
+        redirectResponse(response, 307, buildSimpleSyllabusUrl(termCode, crn));
+        return;
+      }
+
+      const targetUrl = await resolveLegacySyllabusTarget(termCode, crn);
       redirectResponse(response, 307, targetUrl);
       return;
     }

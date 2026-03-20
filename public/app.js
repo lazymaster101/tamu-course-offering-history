@@ -160,18 +160,28 @@ function buildSimpleSyllabusUrl(section) {
   return `https://tamu.simplesyllabus.com/ui/syllabus-redirect?type=html&attribute[4]=${section.crn}.${section.termCode}`;
 }
 
-async function fetchSyllabusInfo(section) {
-  return fetchJson(
-    `/api/course-syllabus-info?term=${encodeURIComponent(section.termCode)}&crn=${encodeURIComponent(
-      section.crn
-    )}`
-  );
+function buildLegacySyllabusUrl(section) {
+  return `/api/open-syllabus?term=${encodeURIComponent(section.termCode)}&crn=${encodeURIComponent(
+    section.crn
+  )}`;
 }
 
-function buildLegacySyllabusPdfUrl(section) {
-  return `/api/course-syllabus-pdf?term=${encodeURIComponent(
-    section.termCode
-  )}&crn=${encodeURIComponent(section.crn)}`;
+function resolveSyllabusTargetUrl(section) {
+  const explicitUrl = section.syllabusUrl;
+
+  if (explicitUrl) {
+    return new URL(explicitUrl, window.location.href).href;
+  }
+
+  if (section.syllabusMode === "simple-syllabus") {
+    return buildSimpleSyllabusUrl(section);
+  }
+
+  if (section.syllabusMode === "legacy") {
+    return new URL(buildLegacySyllabusUrl(section), window.location.href).href;
+  }
+
+  return null;
 }
 
 async function openSyllabus(section, button, statusNode) {
@@ -181,39 +191,17 @@ async function openSyllabus(section, button, statusNode) {
   const popup = openPopupWindow();
 
   try {
-    if (section.syllabusMode === "simple-syllabus") {
-      const simpleSyllabusUrl = buildSimpleSyllabusUrl(section);
-      if (popup) {
-        popup.location.replace(simpleSyllabusUrl);
-      } else {
-        window.open(simpleSyllabusUrl, "_blank", "noreferrer");
-      }
-      return;
+    const syllabusTargetUrl = resolveSyllabusTargetUrl(section);
+
+    if (!syllabusTargetUrl) {
+      throw new Error("TAMU did not expose a usable syllabus target for this section.");
     }
 
-    const syllabusInfo = await fetchSyllabusInfo(section);
-
-    if (syllabusInfo.selectionType === "L" && syllabusInfo.linkUrl) {
-      if (popup) {
-        popup.location.replace(syllabusInfo.linkUrl);
-      } else {
-        window.open(syllabusInfo.linkUrl, "_blank", "noreferrer");
-      }
-      return;
+    if (popup) {
+      popup.location.replace(syllabusTargetUrl);
+    } else {
+      window.open(syllabusTargetUrl, "_blank", "noreferrer");
     }
-
-    if (syllabusInfo.selectionType === "F") {
-      const pdfUrl = buildLegacySyllabusPdfUrl(section);
-
-      if (popup) {
-        popup.location.replace(pdfUrl);
-      } else {
-        window.open(pdfUrl, "_blank", "noreferrer");
-      }
-      return;
-    }
-
-    throw new Error("TAMU did not return a usable syllabus target for this section.");
   } catch (error) {
     if (popup) {
       popup.close();
@@ -274,9 +262,7 @@ async function loadSections(subject, courseNumber, termCode, container, button, 
       container.append(createSectionRow(section));
     });
 
-    const syllabusCount = response.sections.filter(
-      (section) => section.hasSyllabus && section.syllabusUrl
-    ).length;
+    const syllabusCount = response.sections.filter((section) => section.hasSyllabus).length;
 
     if (!syllabusCount) {
       container.append(

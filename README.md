@@ -23,3 +23,12 @@ Then open [http://localhost:4321](http://localhost:4321).
 - No dependencies are required. It uses the built-in Node HTTP server and `fetch`.
 - The first search is the slow one because the app has to warm local catalog caches for the selected TAMU terms.
 - Section data comes from TAMU's public `course-sections` endpoint and syllabus links use TAMU's Simple Syllabus redirect format.
+
+## Deploy on Render
+
+Use a Node web service.
+
+- Build command: `npm install && npm run build`
+- Start command: `npm start`
+
+The build step generates `data/catalog-index.json` from TAMU's public catalog APIs so production searches do not time out on the first user request.

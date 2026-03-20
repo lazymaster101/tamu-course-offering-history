@@ -12,6 +12,7 @@ const RETRY_DELAY_MS = 350;
 
 const PUBLIC_DIR = join(process.cwd(), "public");
 const CACHE_DIR = join(process.cwd(), ".cache");
+const PREBUILT_INDEX_FILE = join(process.cwd(), "data", "catalog-index.json");
 const TERMS_CACHE_FILE = join(CACHE_DIR, "terms.json");
 const CATALOG_CACHE_DIR = join(CACHE_DIR, "catalog");
 const SECTIONS_CACHE_DIR = join(CACHE_DIR, "sections");
@@ -27,6 +28,7 @@ const CAMPUS_LABELS = {
 };
 
 const catalogIndexPromises = new Map();
+let prebuiltCatalogIndexPromise = null;
 
 function jsonResponse(response, statusCode, payload) {
   const body = JSON.stringify(payload);
@@ -280,6 +282,16 @@ async function fetchCatalogForTerm(termCode) {
   );
 }
 
+async function getPrebuiltCatalogIndex() {
+  if (!prebuiltCatalogIndexPromise) {
+    prebuiltCatalogIndexPromise = readJsonFile(PREBUILT_INDEX_FILE)
+      .then((payload) => payload?.entries ?? null)
+      .catch(() => null);
+  }
+
+  return prebuiltCatalogIndexPromise;
+}
+
 async function fetchSectionsForTerm(termCode) {
   return getCachedJson(
     join(SECTIONS_CACHE_DIR, `${termCode}.json`),
@@ -344,6 +356,12 @@ async function buildCatalogIndex(campus = "all") {
 }
 
 async function getCatalogIndex(campus = "all") {
+  const prebuiltIndex = await getPrebuiltCatalogIndex();
+
+  if (prebuiltIndex?.length) {
+    return prebuiltIndex;
+  }
+
   const cacheKey = campus || "all";
 
   if (!catalogIndexPromises.has(cacheKey)) {

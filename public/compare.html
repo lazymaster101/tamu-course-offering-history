@@ -7,7 +7,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&amp;family=Space+Grotesk:wght@400;500;700&amp;display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/styles.css" />
@@ -124,32 +124,37 @@
 
         <section class="saved-section-card compare-panel compare-result-panel">
           <div class="section-heading">
-            <p class="section-kicker">Answer</p>
-            <h2>Comparison output</h2>
+            <p class="section-kicker">Conversation</p>
+            <h2>AI compare chat</h2>
             <p class="history-summary">
               After the first answer, you can keep asking targeted follow-up questions against the
               same comparison context.
             </p>
           </div>
 
-          <div id="compare-result-state" class="empty-state">
+          <div id="compare-result-state" class="empty-state compare-thread-state">
             Add at least two syllabus sources, then run a comparison.
           </div>
 
-          <div id="compare-result" class="compare-result" hidden>
-            <div id="compare-documents" class="compare-document-list"></div>
-            <pre id="compare-answer" class="compare-response"></pre>
+          <div id="compare-thread" class="compare-thread" hidden></div>
+
+          <div id="compare-typing" class="compare-typing" hidden>
+            <span class="compare-typing-dot"></span>
+            <span class="compare-typing-dot"></span>
+            <span class="compare-typing-dot"></span>
           </div>
 
-          <form id="compare-followup-form" class="compare-followup-form" hidden>
-            <label class="field-label" for="compare-followup-question">Follow-up question</label>
-            <textarea
-              id="compare-followup-question"
-              name="compare-followup-question"
-              rows="4"
-              placeholder="Example: Which syllabus has the harshest late-work policy?"
-            ></textarea>
-            <div class="compare-form-actions">
+          <form id="compare-followup-form" class="compare-followup-form compare-chat-composer" hidden>
+            <div class="compare-composer-input">
+              <label class="field-label" for="compare-followup-question">Follow-up question</label>
+              <textarea
+                id="compare-followup-question"
+                name="compare-followup-question"
+                rows="3"
+                placeholder="Ask a follow-up like: Which syllabus has the harshest late-work policy?"
+              ></textarea>
+            </div>
+            <div class="compare-composer-actions">
               <button id="compare-followup-submit" class="compare-submit-button" type="submit">
                 Ask follow-up
               </button>
@@ -172,6 +177,16 @@
           </div>
           <button class="result-action-button compare-source-remove" type="button">Remove</button>
         </div>
+      </article>
+    </template>
+
+    <template id="compare-message-template">
+      <article class="compare-message">
+        <div class="compare-message-meta">
+          <span class="compare-message-role"></span>
+          <span class="compare-message-badge"></span>
+        </div>
+        <div class="compare-message-card"></div>
       </article>
     </template>
 

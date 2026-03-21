@@ -13,12 +13,20 @@ const DEFAULT_COMPARE_HELPER =
   "The first answer can take a bit longer because PDFs need to be processed.";
 const DEFAULT_FOLLOWUP_HELPER =
   "Follow-ups reuse the same model context from the first comparison.";
+const STRUCTURED_SECTION_TITLES = [
+  "QUICK TAKE",
+  "DOCUMENT SNAPSHOTS",
+  "KEY DIFFERENCES",
+  "RED FLAGS OR MISSING DETAILS",
+  "BEST FIT BY STUDENT PRIORITY",
+  "DIRECT ANSWER"
+];
 
 const state = {
   previousResponseId: null,
   lastDocuments: [],
-  lastAnswer: "",
-  requestInFlight: false
+  requestInFlight: false,
+  messages: []
 };
 
 const elements = {
@@ -33,9 +41,9 @@ const elements = {
   queuedSourcesList: document.querySelector("#queued-sources-list"),
   queuedSourceTemplate: document.querySelector("#queued-source-template"),
   resultState: document.querySelector("#compare-result-state"),
-  resultWrap: document.querySelector("#compare-result"),
-  documents: document.querySelector("#compare-documents"),
-  answer: document.querySelector("#compare-answer"),
+  thread: document.querySelector("#compare-thread"),
+  typing: document.querySelector("#compare-typing"),
+  messageTemplate: document.querySelector("#compare-message-template"),
   followupForm: document.querySelector("#compare-followup-form"),
   followupQuestion: document.querySelector("#compare-followup-question"),
   followupSubmit: document.querySelector("#compare-followup-submit"),
@@ -52,24 +60,319 @@ function setHelper(node, message, isError = false) {
   node.classList.toggle("is-error", isError);
 }
 
-function showResultState(message) {
+function showEmptyTranscript(message) {
   elements.resultState.hidden = false;
   elements.resultState.textContent = message;
-  elements.resultWrap.hidden = true;
+  elements.thread.hidden = true;
 }
 
-function showAnswer(answer, documents) {
+function showTranscript() {
   elements.resultState.hidden = true;
-  elements.resultWrap.hidden = false;
-  elements.answer.textContent = answer;
-  elements.documents.innerHTML = "";
+  elements.thread.hidden = false;
+}
 
-  documents.forEach((document) => {
-    const pill = document.createElement("span");
-    pill.className = "syllabus-badge is-muted";
-    pill.textContent = document.label;
-    elements.documents.append(pill);
+function setTyping(isVisible) {
+  elements.typing.hidden = !isVisible;
+}
+
+function scrollThreadToBottom() {
+  requestAnimationFrame(() => {
+    elements.thread.scrollTop = elements.thread.scrollHeight;
   });
+}
+
+function createTextWithLabel(className, text) {
+  const paragraph = document.createElement("p");
+  paragraph.className = className;
+
+  const labelMatch = String(text ?? "").match(/^([^:]{1,48}):\s+(.+)$/);
+  if (!labelMatch) {
+    paragraph.textContent = text;
+    return paragraph;
+  }
+
+  const label = document.createElement("strong");
+  label.textContent = `${labelMatch[1]}: `;
+  paragraph.append(label, document.createTextNode(labelMatch[2]));
+  return paragraph;
+}
+
+function appendRichText(container, text, baseClassName = "compare-paragraph") {
+  const lines = String(text ?? "").split(/\r?\n/);
+  const listStack = [];
+
+  function closeListsToDepth(targetDepth) {
+    while (listStack.length > targetDepth) {
+      listStack.pop();
+    }
+  }
+
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+
+    if (!trimmed) {
+      closeListsToDepth(0);
+      return;
+    }
+
+    const bulletMatch = line.match(/^(\s*)[-•]\s+(.*)$/);
+    if (bulletMatch) {
+      const indentDepth = Math.floor(bulletMatch[1].length / 2);
+      closeListsToDepth(indentDepth);
+
+      let currentList = listStack[indentDepth];
+      if (!currentList) {
+        currentList = document.createElement("ul");
+        currentList.className = "compare-list";
+
+        if (indentDepth === 0) {
+          container.append(currentList);
+        } else {
+          const parentListItem = listStack[indentDepth - 1]?.lastElementChild;
+          if (!parentListItem) {
+            container.append(currentList);
+          } else {
+            parentListItem.append(currentList);
+          }
+        }
+
+        listStack[indentDepth] = currentList;
+      }
+
+      const item = document.createElement("li");
+      item.className = "compare-list-item";
+      item.append(createTextWithLabel("compare-list-line", bulletMatch[2].trim()));
+      currentList.append(item);
+      return;
+    }
+
+    closeListsToDepth(0);
+    container.append(createTextWithLabel(baseClassName, trimmed));
+  });
+}
+
+function parseStructuredAnswer(answer) {
+  const lines = String(answer ?? "").split(/\r?\n/);
+  const sections = [];
+  let currentTitle = null;
+  let currentLines = [];
+  let introLines = [];
+
+  function flushSection() {
+    if (!currentTitle) {
+      return;
+    }
+
+    sections.push({
+      title: currentTitle,
+      body: currentLines.join("\n").trim()
+    });
+    currentLines = [];
+  }
+
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+    if (STRUCTURED_SECTION_TITLES.includes(trimmed)) {
+      flushSection();
+      currentTitle = trimmed;
+      return;
+    }
+
+    if (!currentTitle) {
+      introLines.push(line);
+      return;
+    }
+
+    currentLines.push(line);
+  });
+
+  flushSection();
+
+  return {
+    intro: introLines.join("\n").trim(),
+    sections
+  };
+}
+
+function parseDocumentSnapshotsSection(body) {
+  const lines = String(body ?? "").split(/\r?\n/);
+  const cards = [];
+  let currentCard = null;
+
+  lines.forEach((line) => {
+    const topLevelMatch = line.match(/^- (.+)$/);
+    const nestedMatch = line.match(/^\s+[-•]\s+(.+)$/);
+
+    if (topLevelMatch) {
+      currentCard = {
+        title: topLevelMatch[1].trim(),
+        details: []
+      };
+      cards.push(currentCard);
+      return;
+    }
+
+    if (nestedMatch && currentCard) {
+      currentCard.details.push(nestedMatch[1].trim());
+      return;
+    }
+
+    if (!line.trim()) {
+      return;
+    }
+
+    if (currentCard) {
+      currentCard.details.push(line.trim());
+      return;
+    }
+
+    cards.push({
+      title: line.trim(),
+      details: []
+    });
+  });
+
+  return cards;
+}
+
+function renderSectionBlock(section) {
+  const sectionNode = document.createElement("section");
+  sectionNode.className = "compare-section-card";
+
+  const heading = document.createElement("div");
+  heading.className = "compare-section-heading";
+  const eyebrow = document.createElement("p");
+  eyebrow.className = "section-kicker";
+  eyebrow.textContent = "AI Section";
+  const title = document.createElement("h3");
+  title.className = "compare-section-title";
+  title.textContent = section.title;
+  heading.append(eyebrow, title);
+  sectionNode.append(heading);
+
+  const body = document.createElement("div");
+  body.className = "compare-section-body";
+
+  if (section.title === "DOCUMENT SNAPSHOTS") {
+    const cards = parseDocumentSnapshotsSection(section.body);
+    const grid = document.createElement("div");
+    grid.className = "compare-document-grid";
+
+    cards.forEach((card) => {
+      const cardNode = document.createElement("article");
+      cardNode.className = "compare-document-card";
+      const cardTitle = document.createElement("h4");
+      cardTitle.className = "compare-document-title";
+      cardTitle.textContent = card.title;
+      cardNode.append(cardTitle);
+
+      if (card.details.length) {
+        appendRichText(cardNode, card.details.map((detail) => `- ${detail}`).join("\n"));
+      }
+
+      grid.append(cardNode);
+    });
+
+    body.append(grid);
+  } else {
+    appendRichText(body, section.body);
+  }
+
+  sectionNode.append(body);
+
+  if (section.title === "QUICK TAKE") {
+    sectionNode.classList.add("is-summary");
+  }
+
+  if (section.title === "DIRECT ANSWER") {
+    sectionNode.classList.add("is-accent");
+  }
+
+  return sectionNode;
+}
+
+function renderAssistantMessageCard(message) {
+  const card = document.createElement("div");
+  card.className = "compare-assistant-response";
+
+  if (message.documents?.length) {
+    const documents = document.createElement("div");
+    documents.className = "compare-document-list";
+    message.documents.forEach((item) => {
+      const pill = document.createElement("span");
+      pill.className = "syllabus-badge is-muted";
+      pill.textContent = item.label;
+      documents.append(pill);
+    });
+    card.append(documents);
+  }
+
+  const structured = parseStructuredAnswer(message.content);
+  if (structured.sections.length && structured.intro) {
+    const intro = document.createElement("div");
+    intro.className = "compare-message-intro";
+    appendRichText(intro, structured.intro);
+    card.append(intro);
+  }
+
+  if (!structured.sections.length) {
+    const fallback = document.createElement("div");
+    fallback.className = "compare-response";
+    appendRichText(fallback, message.content);
+    card.append(fallback);
+    return card;
+  }
+
+  structured.sections.forEach((section) => {
+    card.append(renderSectionBlock(section));
+  });
+
+  return card;
+}
+
+function renderMessage(message) {
+  const fragment = elements.messageTemplate.content.cloneNode(true);
+  const article = fragment.querySelector(".compare-message");
+  const role = fragment.querySelector(".compare-message-role");
+  const badge = fragment.querySelector(".compare-message-badge");
+  const card = fragment.querySelector(".compare-message-card");
+
+  article.classList.add(message.role === "user" ? "is-user" : "is-assistant");
+  role.textContent = message.role === "user" ? "You" : "Compare AI";
+  badge.textContent = message.badge ?? (message.role === "user" ? "Prompt" : "Response");
+
+  if (message.role === "user") {
+    card.classList.add("compare-user-card");
+    appendRichText(card, message.content);
+    if (message.meta) {
+      const meta = document.createElement("p");
+      meta.className = "compare-message-note";
+      meta.textContent = message.meta;
+      card.append(meta);
+    }
+  } else {
+    card.append(renderAssistantMessageCard(message));
+  }
+
+  elements.thread.append(fragment);
+}
+
+function renderConversation() {
+  elements.thread.innerHTML = "";
+
+  if (!state.messages.length) {
+    showEmptyTranscript("Add at least two syllabus sources, then run a comparison.");
+    return;
+  }
+
+  showTranscript();
+  state.messages.forEach(renderMessage);
+  scrollThreadToBottom();
+}
+
+function addMessage(message) {
+  state.messages.push(message);
+  renderConversation();
 }
 
 function formatQueuedSourceCourse(source) {
@@ -129,8 +432,7 @@ function parseManualUrlItems() {
 
 function ensurePdfFile(file) {
   const lowerName = file.name.toLowerCase();
-  const looksLikePdf =
-    file.type === "application/pdf" || lowerName.endsWith(".pdf");
+  const looksLikePdf = file.type === "application/pdf" || lowerName.endsWith(".pdf");
 
   if (!looksLikePdf) {
     throw new Error(`Only PDF uploads are supported right now: ${file.name}`);
@@ -249,10 +551,12 @@ async function postJson(path, payload) {
 function resetConversationState() {
   state.previousResponseId = null;
   state.lastDocuments = [];
-  state.lastAnswer = "";
+  state.messages = [];
   elements.followupForm.hidden = true;
   elements.followupQuestion.value = "";
+  setTyping(false);
   setHelper(elements.followupState, DEFAULT_FOLLOWUP_HELPER);
+  renderConversation();
 }
 
 async function handleCompareSubmit(event) {
@@ -269,25 +573,45 @@ async function handleCompareSubmit(event) {
     setHelper(elements.compareState, "Preparing sources...");
 
     const items = await buildCompareItems();
+    const prompt = elements.compareQuestion.value.trim();
+
+    addMessage({
+      role: "user",
+      badge: "Initial compare",
+      content: prompt,
+      meta: `${items.length} syllabus sources queued for this comparison.`
+    });
+    setTyping(true);
+
     const payload = await postJson("/api/compare-syllabi", {
       items,
-      question: elements.compareQuestion.value.trim()
+      question: prompt
     });
 
     state.previousResponseId = payload.responseId ?? null;
     state.lastDocuments = payload.documents ?? [];
-    state.lastAnswer = payload.answer ?? "";
 
-    showAnswer(state.lastAnswer, state.lastDocuments);
+    addMessage({
+      role: "assistant",
+      badge: payload.model ?? "AI model",
+      content: payload.answer ?? "",
+      documents: state.lastDocuments
+    });
+
     elements.followupForm.hidden = !state.previousResponseId;
     setHelper(
       elements.compareState,
       `Compared ${items.length} syllabus sources with ${payload.model ?? "the AI model"}.`
     );
   } catch (error) {
-    showResultState(error.message);
+    addMessage({
+      role: "assistant",
+      badge: "Error",
+      content: error.message
+    });
     setHelper(elements.compareState, error.message, true);
   } finally {
+    setTyping(false);
     state.requestInFlight = false;
     setBusy(elements.compareSubmit, false, "Compare syllabi", "Comparing...");
   }
@@ -317,20 +641,38 @@ async function handleFollowupSubmit(event) {
     setBusy(elements.followupSubmit, true, "Ask follow-up", "Asking...");
     setHelper(elements.followupState, "Running follow-up...");
 
+    addMessage({
+      role: "user",
+      badge: "Follow-up",
+      content: question
+    });
+    setTyping(true);
+
     const payload = await postJson("/api/compare-syllabi", {
       previousResponseId: state.previousResponseId,
       question
     });
 
     state.previousResponseId = payload.responseId ?? state.previousResponseId;
-    state.lastAnswer = payload.answer ?? state.lastAnswer;
 
-    showAnswer(state.lastAnswer, state.lastDocuments);
+    addMessage({
+      role: "assistant",
+      badge: payload.model ?? "AI model",
+      content: payload.answer ?? "",
+      documents: state.lastDocuments
+    });
+
     elements.followupQuestion.value = "";
     setHelper(elements.followupState, "Follow-up complete.");
   } catch (error) {
+    addMessage({
+      role: "assistant",
+      badge: "Error",
+      content: error.message
+    });
     setHelper(elements.followupState, error.message, true);
   } finally {
+    setTyping(false);
     state.requestInFlight = false;
     setBusy(elements.followupSubmit, false, "Ask follow-up", "Asking...");
   }
@@ -345,6 +687,6 @@ elements.clearQueuedSources.addEventListener("click", () => {
 startSavedCourseBadgeSync();
 renderQueuedSources();
 subscribeToCompareSources(renderQueuedSources);
-showResultState("Add at least two syllabus sources, then run a comparison.");
+renderConversation();
 setHelper(elements.compareState, DEFAULT_COMPARE_HELPER);
 setHelper(elements.followupState, DEFAULT_FOLLOWUP_HELPER);

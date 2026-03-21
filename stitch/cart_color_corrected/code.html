@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Semester Cart | Aggie Curator</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Space+Grotesk:wght@300..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "error": "#ba1a1a",
+                        "on-tertiary": "#ffffff",
+                        "on-surface": "#1c1c1a",
+                        "on-background": "#1c1c1a",
+                        "on-surface-variant": "#57423f",
+                        "primary-container": "#500000",
+                        "on-secondary-fixed-variant": "#4b4642",
+                        "on-error-container": "#93000a",
+                        "tertiary-container": "#321f08",
+                        "surface-container-high": "#eae8e5",
+                        "on-tertiary-container": "#a38567",
+                        "inverse-surface": "#31302f",
+                        "surface-variant": "#e5e2df",
+                        "outline-variant": "#ddc0bb",
+                        "on-secondary-container": "#67625e",
+                        "surface-container-highest": "#e5e2df",
+                        "on-error": "#ffffff",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container-low": "#f6f3f0",
+                        "tertiary-fixed": "#ffddbb",
+                        "surface-dim": "#dcdad7",
+                        "on-primary": "#ffffff",
+                        "error-container": "#ffdad6",
+                        "background": "#fcf9f6",
+                        "secondary-fixed-dim": "#cdc5c0",
+                        "surface-bright": "#fcf9f6",
+                        "secondary": "#635d5a",
+                        "on-tertiary-fixed-variant": "#5a4229",
+                        "inverse-on-surface": "#f3f0ed",
+                        "surface-tint": "#a33d2f",
+                        "secondary-fixed": "#e9e1dc",
+                        "inverse-primary": "#ffb4a8",
+                        "primary": "#270000",
+                        "tertiary-fixed-dim": "#e3c19f",
+                        "tertiary": "#180a00",
+                        "secondary-container": "#e6ded9",
+                        "outline": "#8a716e",
+                        "on-secondary-fixed": "#1e1b18",
+                        "on-primary-fixed": "#410000",
+                        "primary-fixed-dim": "#ffb4a8",
+                        "on-tertiary-fixed": "#291803",
+                        "on-primary-fixed-variant": "#83251b",
+                        "surface-container": "#f0edea",
+                        "primary-fixed": "#ffdad4",
+                        "on-secondary": "#ffffff",
+                        "on-primary-container": "#dc6756",
+                        "surface": "#fcf9f6"
+                    },
+                    fontFamily: {
+                        "headline": ["Newsreader"],
+                        "body": ["Space Grotesk"],
+                        "label": ["Space Grotesk"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Space Grotesk', sans-serif; background-color: #fcf9f6; }
+        .font-newsreader { font-family: 'Newsreader', serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-white overflow-x-hidden">
+<!-- Sidebar Navigation -->
+<aside class="fixed left-0 top-0 flex flex-col h-screen w-72 border-r border-surface-container bg-surface z-50 py-8 hidden lg:flex">
+<div class="px-8 mb-12">
+<h1 class="font-newsreader text-2xl italic text-primary-container font-bold">The Curator</h1>
+<p class="font-label text-[10px] uppercase tracking-[0.2em] text-on-surface-variant mt-1">TAMU Course History</p>
+</div>
+<nav class="flex-1 space-y-2">
+<!-- Explore -->
+<div class="flex items-center gap-4 text-on-surface-variant/60 px-6 py-4 hover:bg-surface-variant/30 transition-all cursor-pointer">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="font-label text-sm uppercase font-medium tracking-widest">Explore</span>
+</div>
+<!-- Active Cart -->
+<div class="flex items-center gap-4 bg-surface-container text-primary-container rounded-r-lg px-6 py-4 mr-4 cursor-pointer transition-all duration-200">
+<span class="material-symbols-outlined filled-icon" data-icon="shopping_cart">shopping_cart</span>
+<span class="font-label text-sm uppercase font-bold tracking-widest">Cart</span>
+</div>
+<!-- Favorites -->
+<div class="flex items-center gap-4 text-on-surface-variant/60 px-6 py-4 hover:bg-surface-variant/30 transition-all cursor-pointer">
+<span class="material-symbols-outlined" data-icon="bookmark">bookmark</span>
+<span class="font-label text-sm uppercase font-medium tracking-widest">Favorites</span>
+</div>
+</nav>
+<div class="px-8 mt-auto pt-8 border-t border-surface-container">
+<div class="flex items-center gap-3 mb-8">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest flex items-center justify-center overflow-hidden">
+<img alt="Academic Profile" class="w-full h-full object-cover" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtQCwLyKwG-uPCZe4Cgm9-C7kTDLvI63hOBXUh_1HWThRuubJXj_aMiz3MFFbt8jT5ke0TtSLeF2vKNOM6H5M6gX2lIxYjf3K2qEjrxyboHuGRrkkCCe1jpT0jQroi0p2fI06vU374H9HaW-BZkoOQFtbkSkx8ZQLOoQ-NVIczc7cYCbozhhyJn8pR_Cbi_io_r-MUxuKxFkPbpKKKGwDsvRIVC8mPx88ylauXNdxvB88NbXqPK71J-ASDl-NwBZSAqu-_BAJR3ic"/>
+</div>
+<div>
+<p class="font-label text-xs font-bold text-on-surface">J. Reveles</p>
+<p class="font-label text-[10px] text-on-surface-variant uppercase tracking-tighter">Computer Science '25</p>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex items-center gap-4 text-on-surface-variant/60 cursor-pointer hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="settings">settings</span>
+<span class="font-label text-xs uppercase tracking-widest">Settings</span>
+</div>
+<div class="flex items-center gap-4 text-on-surface-variant/60 cursor-pointer hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="help_outline">help_outline</span>
+<span class="font-label text-xs uppercase tracking-widest">Support</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="lg:ml-72 min-h-screen bg-background">
+<!-- Top Bar -->
+<header class="sticky top-0 z-40 bg-surface/80 backdrop-blur-md px-12 h-24 flex items-center justify-between border-b border-surface-container-low">
+<div class="flex items-center gap-12 flex-1">
+<div class="hidden md:flex items-center gap-8 border-r border-surface-container pr-8 h-10">
+<a class="font-label text-xs uppercase tracking-widest text-on-surface-variant/60 hover:text-primary-container transition-colors pb-1 border-b-2 border-transparent" href="#">Home</a>
+<a class="font-label text-xs uppercase tracking-widest text-on-surface-variant/60 hover:text-primary-container transition-colors pb-1 border-b-2 border-transparent" href="#">Planner</a>
+<a class="font-label text-xs uppercase tracking-widest text-on-surface-variant/60 hover:text-primary-container transition-colors pb-1 border-b-2 border-transparent" href="#">AI Compare</a>
+</div>
+<div class="flex-1 max-w-lg relative group">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant/40" data-icon="search">search</span>
+<input class="w-full h-12 bg-surface-container-lowest border-none rounded-lg pl-12 pr-4 font-body text-sm focus:ring-1 focus:ring-primary-container/20 placeholder:text-on-surface-variant/30" placeholder="Search 2,400+ archive courses..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6 ml-8">
+<button class="relative text-on-surface-variant hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-primary-container rounded-full border-2 border-surface"></span>
+</button>
+<div class="h-8 w-px bg-surface-container"></div>
+<a class="flex items-center gap-2 text-on-surface-variant hover:text-primary-container transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_circle</span>
+<span class="font-label text-xs uppercase tracking-widest font-medium">Profile</span>
+</a>
+</div>
+</header>
+<!-- Page Content -->
+<div class="max-w-7xl mx-auto px-12 pt-16 pb-24 flex flex-col lg:flex-row gap-16">
+<!-- Content Left (65%) -->
+<div class="w-full lg:w-[65%] space-y-16">
+<!-- Page Header -->
+<header>
+<h1 class="text-7xl font-headline font-bold text-primary tracking-tight mb-6">Semester Cart</h1>
+<p class="text-2xl font-headline italic text-on-surface-variant/80 max-w-2xl leading-relaxed">
+                    Courses you are comparing and planning for the upcoming term.
+                </p>
+</header>
+<!-- Course List Section -->
+<section class="space-y-6">
+<div class="flex items-center justify-between border-b border-surface-container pb-4">
+<span class="text-[10px] font-label uppercase tracking-[0.2em] text-on-surface-variant/60 font-bold">Selected Archives (03)</span>
+<button class="text-[10px] font-label uppercase tracking-[0.2em] text-primary-container font-bold hover:underline">Clear All</button>
+</div>
+<div class="space-y-4">
+<!-- Cart Item 1 -->
+<div class="group relative bg-surface-container-low rounded-lg p-8 transition-all duration-300 flex items-center gap-8 border border-transparent hover:border-outline-variant/30">
+<div class="flex-shrink-0 w-16 h-16 bg-primary-container text-white flex items-center justify-center rounded-sm font-bold text-lg font-label">
+                            CSCE
+                        </div>
+<div class="flex-1">
+<div class="flex items-start justify-between">
+<div>
+<h3 class="text-3xl font-headline font-bold text-on-surface leading-tight">CSCE 411: Design and Analysis of Algorithms</h3>
+<p class="text-sm font-headline italic text-on-surface-variant mt-1">Foundational Theory • Dr. J. Smith</p>
+</div>
+<div class="text-right">
+<span class="text-2xl font-headline font-bold text-on-surface">3.0</span>
+<p class="text-[8px] font-label uppercase tracking-widest text-on-surface-variant font-bold">Credits</p>
+</div>
+</div>
+</div>
+<div class="flex gap-4">
+<button class="text-on-surface-variant/40 hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+<button class="text-on-surface-variant/40 hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-xl">history_edu</span>
+</button>
+</div>
+</div>
+<!-- Cart Item 2 -->
+<div class="group relative bg-surface-container-low rounded-lg p-8 transition-all duration-300 flex items-center gap-8 border border-transparent hover:border-outline-variant/30">
+<div class="flex-shrink-0 w-16 h-16 bg-primary-container text-white flex items-center justify-center rounded-sm font-bold text-lg font-label">
+                            STAT
+                        </div>
+<div class="flex-1">
+<div class="flex items-start justify-between">
+<div>
+<h3 class="text-3xl font-headline font-bold text-on-surface leading-tight">STAT 211: Principles of Statistics I</h3>
+<p class="text-sm font-headline italic text-on-surface-variant mt-1">Quantitative Analysis • Dr. A. Miller</p>
+</div>
+<div class="text-right">
+<span class="text-2xl font-headline font-bold text-on-surface">3.0</span>
+<p class="text-[8px] font-label uppercase tracking-widest text-on-surface-variant font-bold">Credits</p>
+</div>
+</div>
+</div>
+<div class="flex gap-4">
+<button class="text-on-surface-variant/40 hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+<button class="text-on-surface-variant/40 hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-xl">history_edu</span>
+</button>
+</div>
+</div>
+<!-- Cart Item 3 (Conflict) -->
+<div class="group relative bg-surface-container-low rounded-lg p-8 transition-all duration-300 border-l-[6px] border-l-primary-container flex items-center gap-8">
+<div class="flex-shrink-0 w-16 h-16 bg-primary-container text-white flex items-center justify-center rounded-sm font-bold text-lg font-label">
+                            ENGR
+                        </div>
+<div class="flex-1">
+<div class="flex items-start justify-between">
+<div>
+<h3 class="text-3xl font-headline font-bold text-on-surface leading-tight">ENGR 482: Ethics and Engineering</h3>
+<p class="text-sm font-headline italic text-on-surface-variant mt-1">ICD Requirement • Prof. R. Garcia</p>
+</div>
+<div class="text-right">
+<span class="text-2xl font-headline font-bold text-on-surface">2.0</span>
+<p class="text-[8px] font-label uppercase tracking-widest text-on-surface-variant font-bold">Credits</p>
+</div>
+</div>
+<div class="mt-3 flex items-center gap-1.5 text-primary-container text-[10px] font-label font-bold uppercase tracking-widest">
+<span class="material-symbols-outlined text-xs">warning</span>
+                                Schedule Conflict: Mon 10:20AM
+                            </div>
+</div>
+<div class="flex gap-4">
+<button class="text-on-surface-variant/40 hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-xl">delete</span>
+</button>
+<button class="text-on-surface-variant/40 hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-xl">history_edu</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Suggested Additions Section -->
+<section>
+<div class="mb-10">
+<h2 class="text-5xl font-headline font-bold text-primary tracking-tight">Suggested Additions</h2>
+<p class="text-xl font-headline italic text-on-surface-variant/80 mt-2">Based on your degree plan and current cart.</p>
+</div>
+<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+<div class="p-8 bg-surface-container rounded-lg flex justify-between items-center group cursor-pointer hover:bg-surface-container-high transition-all">
+<div>
+<h4 class="text-xl font-headline font-bold text-on-surface">CSCE 431</h4>
+<p class="text-xs font-label text-on-surface-variant uppercase tracking-widest font-medium">Software Engineering</p>
+</div>
+<button class="w-10 h-10 bg-surface-container-lowest text-primary-container rounded-full flex items-center justify-center shadow-sm hover:scale-105 transition-transform">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+<div class="p-8 bg-surface-container rounded-lg flex justify-between items-center group cursor-pointer hover:bg-surface-container-high transition-all">
+<div>
+<h4 class="text-xl font-headline font-bold text-on-surface">POLS 207</h4>
+<p class="text-xs font-label text-on-surface-variant uppercase tracking-widest font-medium">State and Local Government</p>
+</div>
+<button class="w-10 h-10 bg-surface-container-lowest text-primary-container rounded-full flex items-center justify-center shadow-sm hover:scale-105 transition-transform">
+<span class="material-symbols-outlined">add</span>
+</button>
+</div>
+</div>
+</section>
+</div>
+<!-- Content Right (35%) - Cart Summary -->
+<div class="w-full lg:w-[35%]">
+<div class="sticky top-32 space-y-8">
+<!-- Summary Card -->
+<div class="bg-surface-container rounded-lg overflow-hidden shadow-sm">
+<div class="p-10 space-y-10">
+<h3 class="text-[10px] font-label uppercase tracking-[0.3em] font-bold text-on-surface-variant/50">Cart Summary</h3>
+<div class="space-y-6">
+<div class="flex justify-between items-end">
+<span class="font-headline text-lg text-on-surface-variant italic">Total Courses</span>
+<span class="font-headline font-bold text-3xl">03</span>
+</div>
+<div class="flex justify-between items-end pb-4">
+<span class="font-headline text-lg text-on-surface-variant italic">Total Credits</span>
+<span class="font-headline font-bold text-5xl text-on-surface">8.0</span>
+</div>
+</div>
+<div class="space-y-6 pt-4">
+<button class="w-full py-5 bg-primary-container text-white rounded-sm font-label font-bold text-[11px] tracking-[0.2em] uppercase hover:bg-black transition-all shadow-md">
+                                Review &amp; Validate
+                            </button>
+<p class="text-[9px] text-center text-on-surface-variant font-label px-6 leading-relaxed uppercase tracking-widest opacity-60">
+                                Validation checks for prerequisites, co-requisites, and seat availability in real-time.
+                            </p>
+</div>
+</div>
+<!-- AI Assist Section -->
+<div class="bg-black/5 p-10 border-t border-surface-container-highest">
+<div class="flex items-center gap-3 mb-8">
+<span class="material-symbols-outlined text-primary-container filled-icon text-xl">auto_awesome</span>
+<h4 class="text-[10px] font-label font-bold text-on-surface uppercase tracking-[0.2em]">Curator AI Assist</h4>
+</div>
+<div class="space-y-5">
+<div class="p-6 bg-surface-container-lowest rounded-sm border-l-4 border-l-[#ffcc00] shadow-sm">
+<p class="text-xs font-label leading-relaxed text-on-surface">
+<strong class="font-bold">Optimization Tip:</strong> You have a 10-minute window between CSCE 411 and STAT 211. Consider a closer section for STAT 211 in Blocker Building.
+                                </p>
+</div>
+<div class="p-6 bg-surface-container-lowest rounded-sm border-l-4 border-l-primary-container shadow-sm">
+<p class="text-xs font-label leading-relaxed text-on-surface">
+<strong class="text-primary-container font-bold">Prerequisite Warning:</strong> CSCE 411 requires 'C' or better in CSCE 221. Your profile shows this is currently "In Progress".
+                                </p>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Mobile Bottom Nav -->
+<nav class="md:hidden fixed bottom-0 w-full bg-surface z-50 flex justify-around items-center py-5 border-t border-surface-container shadow-2xl">
+<span class="material-symbols-outlined text-on-surface-variant/40">explore</span>
+<span class="material-symbols-outlined text-primary-container filled-icon">shopping_cart</span>
+<span class="material-symbols-outlined text-on-surface-variant/40">bookmark</span>
+<span class="material-symbols-outlined text-on-surface-variant/40">settings</span>
+</nav>
+</body></html>

@@ -1,4 +1,5 @@
 const STORAGE_KEYS = {
+  plan: "tamu-course-cart-v1",
   cart: "tamu-course-cart-v1",
   favorites: "tamu-course-favorites-v1"
 };
@@ -110,8 +111,10 @@ export function toggleSavedCourse(collectionName, course) {
 }
 
 export function getSavedCourseCounts() {
+  const planCount = getSavedCourses("plan").length;
   return {
-    cart: getSavedCourses("cart").length,
+    plan: planCount,
+    cart: planCount,
     favorites: getSavedCourses("favorites").length
   };
 }

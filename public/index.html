@@ -7,93 +7,222 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..800;1,6..72,400..800&family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@400,0..1&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body data-page="explore">
-    <div class="page-shell">
-      <nav class="utility-bar" aria-label="Primary">
-        <a class="utility-link is-active" href="/">Explore</a>
-        <div class="utility-bar-links">
-          <a class="utility-link" href="/saved.html#cart">
-            Cart
-            <span id="cart-count-badge" class="utility-count">0</span>
+    <div class="app-shell">
+      <aside class="app-sidebar">
+        <a class="brand-lockup" href="/">
+          <span class="brand-mark">The Curator</span>
+          <span class="brand-subtitle">TAMU Course History</span>
+        </a>
+
+        <nav class="sidebar-nav" aria-label="Primary">
+          <a class="sidebar-link is-active" href="/" data-shell-page="explore">
+            <span class="material-symbols-outlined sidebar-link-icon">explore</span>
+            <span class="sidebar-link-label">Explore</span>
           </a>
-          <a class="utility-link" href="/saved.html#favorites">
-            Favorites
-            <span id="favorite-count-badge" class="utility-count">0</span>
+          <a class="sidebar-link" href="/saved.html#plan" data-shell-section="plan">
+            <span class="material-symbols-outlined sidebar-link-icon">shopping_cart</span>
+            <span class="sidebar-link-label">Semester Plan</span>
+            <span class="sidebar-link-count" data-saved-count="plan">0</span>
           </a>
-          <a class="utility-link" href="/compare.html">AI Compare</a>
+          <a class="sidebar-link" href="/saved.html#favorites" data-shell-section="favorites">
+            <span class="material-symbols-outlined sidebar-link-icon">bookmark</span>
+            <span class="sidebar-link-label">Favorites</span>
+            <span class="sidebar-link-count" data-saved-count="favorites">0</span>
+          </a>
+          <a class="sidebar-link" href="/compare.html" data-shell-page="compare">
+            <span class="material-symbols-outlined sidebar-link-icon">compare_arrows</span>
+            <span class="sidebar-link-label">AI Compare</span>
+            <span class="sidebar-link-count" data-shortlist-count>0</span>
+          </a>
+          <a class="sidebar-link" href="/planner.html" data-shell-page="planner">
+            <span class="material-symbols-outlined sidebar-link-icon">hub</span>
+            <span class="sidebar-link-label">Planner</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-profile">
+          <div class="sidebar-avatar">JR</div>
+          <div>
+            <p class="sidebar-profile-name">J. Reveles</p>
+            <p class="sidebar-profile-meta">Computer Science '25</p>
+          </div>
         </div>
-      </nav>
 
-      <header class="hero-card">
-        <div class="hero-copy">
-          <p class="eyebrow">TAMU Public Class Search, fixed</p>
-          <h1>TAMU Course Offering History</h1>
-          <p class="lede">
-            Search once, then scan every semester a course was offered without
-            bouncing across TAMU's term selector over and over.
-          </p>
+        <div class="sidebar-footer-links">
+          <a class="sidebar-footer-link" href="/planner.html">
+            <span class="material-symbols-outlined">bolt</span>
+            <span>Fast-track planning</span>
+          </a>
+          <a class="sidebar-footer-link" href="/compare.html">
+            <span class="material-symbols-outlined">auto_awesome</span>
+            <span>Syllabus compare</span>
+          </a>
         </div>
+      </aside>
 
-        <form id="search-form" class="search-panel">
-          <label class="field-label" for="query">Course or title</label>
-          <input
-            id="query"
-            name="query"
-            type="text"
-            placeholder='Try "CSCE 121" or "intro accounting"'
-            autocomplete="off"
-          />
+      <div class="app-main">
+        <header class="app-topbar">
+          <nav class="app-topbar-tabs" aria-label="Section tabs">
+            <a class="app-tab is-active" href="/">Home</a>
+            <a class="app-tab" href="/planner.html">Planner</a>
+            <a class="app-tab" href="/compare.html">AI Compare</a>
+          </nav>
 
-          <label class="field-label" for="campus">Campus scope</label>
-          <select id="campus" name="campus">
-            <option value="college-station">College Station</option>
-            <option value="all">All terms</option>
-            <option value="galveston">Galveston</option>
-            <option value="qatar">Qatar</option>
-          </select>
+          <form class="app-quick-search" action="/" method="get">
+            <span class="material-symbols-outlined app-quick-search-icon">search</span>
+            <input
+              class="app-quick-search-input"
+              type="search"
+              name="q"
+              placeholder="Search 2,400+ archive courses..."
+              autocomplete="off"
+            />
+          </form>
 
-          <button type="submit" id="search-button">Search offerings</button>
-
-          <p class="search-note">
-            Open any term to load its sections and any syllabus links TAMU still
-            exposes for that offering.
-          </p>
-        </form>
-      </header>
-
-      <main class="layout">
-        <section class="results-card">
-          <div class="section-heading">
-            <p class="section-kicker">Matches</p>
-            <h2>Course results</h2>
+          <div class="app-topbar-actions">
+            <button class="app-icon-button" type="button" aria-label="Notifications">
+              <span class="material-symbols-outlined">notifications</span>
+            </button>
+            <a class="app-profile-link" href="/saved.html#favorites">
+              <span class="material-symbols-outlined">account_circle</span>
+              <span>Profile</span>
+            </a>
           </div>
-          <div id="results-state" class="empty-state">
-            Search for a course code or a title fragment to start building a
-            semester history.
-          </div>
-          <div id="results-list" class="results-list" hidden></div>
-        </section>
+        </header>
 
-        <section class="history-card">
-          <div class="section-heading">
-            <p class="section-kicker">Offerings</p>
-            <h2 id="history-title">Pick a course</h2>
-            <p id="history-summary" class="history-summary">
-              Previous offerings will show up here as a compact term-by-term timeline.
-            </p>
-          </div>
-          <div id="history-state" class="empty-state">
-            Matching courses will appear on the left. Select one to load its
-            full term history and section-level details.
-          </div>
-          <div id="history-list" class="history-list" hidden></div>
-        </section>
-      </main>
+        <div class="page-shell page-shell-explore">
+          <header class="hero-card explore-hero">
+            <div class="hero-copy explore-hero-copy">
+              <p class="eyebrow">Offering history</p>
+              <h1>Search once. Scan every semester.</h1>
+              <p class="lede">
+                The TAMU class search makes you bounce term by term. This archive-first view keeps
+                the course history, section groups, honors split, and syllabus entry points in one
+                place.
+              </p>
+              <div class="hero-chip-row">
+                <span class="hero-chip">Semester timeline first</span>
+                <span class="hero-chip">Independent course scroll</span>
+                <span class="hero-chip">Shared syllabus grouping</span>
+              </div>
+            </div>
+
+            <form id="search-form" class="search-panel search-panel-explore">
+              <label class="field-label" for="query">Course or title</label>
+              <input
+                id="query"
+                name="query"
+                type="text"
+                placeholder='Try "CSCE 121" or "intro accounting"'
+                autocomplete="off"
+              />
+
+              <label class="field-label" for="campus">Campus scope</label>
+              <select id="campus" name="campus">
+                <option value="college-station">College Station</option>
+                <option value="all">All terms</option>
+                <option value="galveston">Galveston</option>
+                <option value="qatar">Qatar</option>
+              </select>
+
+              <button type="submit" id="search-button">Search offerings</button>
+
+              <p class="search-note">
+                Open any term to load grouped sections and the syllabus links TAMU still exposes.
+              </p>
+            </form>
+          </header>
+
+          <main class="layout explore-layout">
+            <section class="results-card editorial-panel">
+              <div class="section-heading">
+                <p class="section-kicker">Matches</p>
+                <h2>Course index</h2>
+                <p class="history-summary">
+                  Keep this panel pinned and scroll through matching courses without moving the main
+                  timeline.
+                </p>
+              </div>
+              <div id="results-state" class="empty-state">
+                Search for a course code or title fragment to start building a semester history.
+              </div>
+              <div id="results-list" class="results-list" hidden></div>
+            </section>
+
+            <section class="history-card editorial-panel">
+              <div class="section-heading section-heading-wide">
+                <p class="section-kicker">Offering history</p>
+                <h2 id="history-title">Pick a course</h2>
+                <p id="history-summary" class="history-summary">
+                  Previous offerings will show up here as a compact term-by-term timeline.
+                </p>
+              </div>
+              <div id="history-state" class="empty-state">
+                Matching courses will appear on the left. Select one to load its full term history
+                and section-level details.
+              </div>
+              <div id="history-list" class="history-list" hidden></div>
+            </section>
+
+            <aside class="editorial-rail">
+              <article class="editorial-card editorial-card-accent">
+                <p class="section-kicker">Curator AI Assist</p>
+                <h3>Shortlist instructors after you pick the course.</h3>
+                <p>
+                  Build the semester plan at the course level first. Then shortlist instructor
+                  groups from real term cards before sending those syllabi into AI compare.
+                </p>
+                <a class="editorial-link" href="/compare.html">Open AI compare</a>
+              </article>
+
+              <article class="editorial-card">
+                <p class="section-kicker">Saved library</p>
+                <h3>Keep the short list visible.</h3>
+                <div class="editorial-metric-list">
+                  <div class="editorial-metric">
+                    <span>Semester Plan</span>
+                    <strong data-saved-count="plan">0</strong>
+                  </div>
+                  <div class="editorial-metric">
+                    <span>Shortlist</span>
+                    <strong data-shortlist-count>0</strong>
+                  </div>
+                  <div class="editorial-metric">
+                    <span>Favorites</span>
+                    <strong data-saved-count="favorites">0</strong>
+                  </div>
+                </div>
+                <p>
+                  Semester Plan is course-only. Shortlist is for real professor/section candidates.
+                  Favorites are the long-term archive you revisit often.
+                </p>
+              </article>
+
+              <article class="editorial-card">
+                <p class="section-kicker">Workflow</p>
+                <h3>Best way to use the archive</h3>
+                <ol class="editorial-list">
+                  <li>Search the course once.</li>
+                  <li>Open the most recent terms that matter.</li>
+                  <li>Add likely classes to the semester plan.</li>
+                  <li>Shortlist professor groups from real term cards.</li>
+                  <li>Use AI Compare on the shortlist, not on raw course ideas.</li>
+                </ol>
+              </article>
+            </aside>
+          </main>
+        </div>
+      </div>
     </div>
 
     <template id="course-result-template">
@@ -104,7 +233,7 @@
           <span class="result-meta"></span>
         </button>
         <div class="result-actions">
-          <button class="result-action-button result-cart-button" type="button">Add to cart</button>
+          <button class="result-action-button result-cart-button" type="button">Add to semester plan</button>
           <button class="result-action-button result-favorite-button" type="button">
             Favorite
           </button>
@@ -115,6 +244,7 @@
     <template id="term-card-template">
       <details class="term-card">
         <summary class="term-summary">
+          <span class="term-timeline-dot" aria-hidden="true"></span>
           <span class="term-primary">
             <span class="term-code"></span>
             <span class="term-title"></span>

@@ -3,7 +3,9 @@ import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { request as httpsRequest } from "node:https";
 import { dirname, extname, join, resolve, sep } from "node:path";
+import { getDegreePlan, listDegreePlans } from "./lib/degree-planner-data.mjs";
 import { compareSyllabi } from "./lib/openai-compare.mjs";
+import { chatWithDegreePlanner } from "./lib/openai-planner.mjs";
 
 const PORT = Number(process.env.PORT ?? 4321);
 const HOWDY_BASE_URL = process.env.HOWDY_BASE_URL ?? "https://howdy.tamu.edu";
@@ -948,6 +950,32 @@ async function handleApi(request, response, url) {
         question: payload?.question,
         previousResponseId: payload?.previousResponseId,
         requestOrigin
+      });
+
+      jsonResponse(response, 200, result);
+      return;
+    }
+
+    if (url.pathname === "/api/degree-plan") {
+      const planId = url.searchParams.get("plan")?.trim() || "bs-cs-2025";
+      jsonResponse(response, 200, {
+        plans: listDegreePlans(),
+        plan: getDegreePlan(planId)
+      });
+      return;
+    }
+
+    if (url.pathname === "/api/planner-chat") {
+      if (request.method !== "POST") {
+        jsonResponse(response, 405, { error: "Method Not Allowed" });
+        return;
+      }
+
+      const payload = await readJsonRequestBody(request);
+      const result = await chatWithDegreePlanner({
+        plannerState: payload?.plannerState,
+        question: payload?.question,
+        previousResponseId: payload?.previousResponseId
       });
 
       jsonResponse(response, 200, result);

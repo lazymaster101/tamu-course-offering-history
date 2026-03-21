@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>The Curator | TAMU Course History</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Space+Grotesk:wght@300..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "on-primary": "#ffffff",
+              "primary": "#500000",
+              "inverse-on-surface": "#f3f0ed",
+              "surface-tint": "#500000",
+              "outline": "#8a716e",
+              "tertiary": "#180a00",
+              "surface-container-high": "#eae8e5",
+              "on-primary-fixed": "#410000",
+              "surface-variant": "#e5e2df",
+              "primary-container": "#500000",
+              "on-secondary-fixed": "#1e1b18",
+              "inverse-primary": "#ffb4a8",
+              "error-container": "#ffdad6",
+              "primary-fixed": "#ffdad4",
+              "on-primary-container": "#ffffff",
+              "on-secondary-fixed-variant": "#4b4642",
+              "surface": "#fcf9f6",
+              "on-tertiary-fixed": "#291803",
+              "tertiary-container": "#321f08",
+              "on-primary-fixed-variant": "#83251b",
+              "surface-container-highest": "#e5e2df",
+              "background": "#fcf9f6",
+              "surface-container-low": "#f6f3f0",
+              "on-tertiary-container": "#a38567",
+              "secondary-container": "#e6ded9",
+              "on-background": "#1c1c1a",
+              "on-surface-variant": "#57423f",
+              "on-secondary": "#ffffff",
+              "inverse-surface": "#31302f",
+              "on-tertiary": "#ffffff",
+              "on-surface": "#1c1c1a",
+              "surface-dim": "#dcdad7",
+              "surface-bright": "#fcf9f6",
+              "error": "#ba1a1a",
+              "on-tertiary-fixed-variant": "#5a4229",
+              "secondary-fixed": "#e9e1dc",
+              "tertiary-fixed-dim": "#e3c19f",
+              "tertiary-fixed": "#ffddbb",
+              "on-secondary-container": "#67625e",
+              "on-error": "#ffffff",
+              "primary-fixed-dim": "#ffb4a8",
+              "outline-variant": "#ddc0bb",
+              "surface-container-lowest": "#ffffff",
+              "surface-container": "#f0edea",
+              "secondary": "#635d5a",
+              "on-error-container": "#93000a",
+              "secondary-fixed-dim": "#cdc5c0"
+            },
+            fontFamily: {
+              "headline": ["Newsreader"],
+              "body": ["Space Grotesk"],
+              "label": ["Space Grotesk"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body { font-family: 'Space Grotesk', sans-serif; background-color: #fcf9f6; }
+        .font-newsreader { font-family: 'Newsreader', serif; }
+        .material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+    </style>
+</head>
+<body class="text-on-surface overflow-x-hidden">
+<!-- Sidebar Navigation -->
+<aside class="fixed left-0 top-0 flex flex-col h-screen w-72 border-r border-surface-container bg-surface z-50 py-8">
+<div class="px-8 mb-12">
+<h1 class="font-newsreader text-2xl italic text-primary font-bold">The Curator</h1>
+<p class="font-label text-[10px] uppercase tracking-[0.2em] text-on-surface-variant mt-1">TAMU Course History</p>
+</div>
+<nav class="flex-1 space-y-2">
+<!-- Active Navigation -->
+<div class="flex items-center gap-4 bg-surface-container text-primary rounded-r-lg px-6 py-4 mr-4 cursor-pointer transition-all duration-200">
+<span class="material-symbols-outlined text-primary" data-icon="explore" style="font-variation-settings: 'FILL' 1;">explore</span>
+<span class="font-label text-sm uppercase font-medium tracking-widest">Explore</span>
+</div>
+<div class="flex items-center gap-4 text-on-surface-variant/60 px-6 py-4 hover:bg-surface-variant/30 transition-all cursor-pointer">
+<span class="material-symbols-outlined" data-icon="shopping_cart" style="font-variation-settings: 'FILL' 0;">shopping_cart</span>
+<span class="font-label text-sm uppercase font-medium tracking-widest">Cart</span>
+</div>
+<div class="flex items-center gap-4 text-on-surface-variant/60 px-6 py-4 hover:bg-surface-variant/30 transition-all cursor-pointer">
+<span class="material-symbols-outlined" data-icon="bookmark" style="font-variation-settings: 'FILL' 0;">bookmark</span>
+<span class="font-label text-sm uppercase font-medium tracking-widest">Favorites</span>
+</div>
+</nav>
+<div class="px-8 mt-auto pt-8 border-t border-surface-container">
+<div class="flex items-center gap-3 mb-8">
+<img alt="Academic Profile" class="w-10 h-10 rounded-full bg-surface-container-highest" data-alt="User profile avatar icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtQCwLyKwG-uPCZe4Cgm9-C7kTDLvI63hOBXUh_1HWThRuubJXj_aMiz3MFFbt8jT5ke0TtSLeF2vKNOM6H5M6gX2lIxYjf3K2qEjrxyboHuGRrkkCCe1jpT0jQroi0p2fI06vU374H9HaW-BZkoOQFtbkSkx8ZQLOoQ-NVIczc7cYCbozhhyJn8pR_Cbi_io_r-MUxuKxFkPbpKKKGwDsvRIVC8mPx88ylauXNdxvB88NbXqPK71J-ASDl-NwBZSAqu-_BAJR3ic"/>
+<div>
+<p class="font-label text-xs font-bold text-on-surface">J. Reveles</p>
+<p class="font-label text-[10px] text-on-surface-variant uppercase tracking-tighter">Computer Science '25</p>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex items-center gap-4 text-on-surface-variant/60 cursor-pointer hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="settings" style="font-variation-settings: 'FILL' 0;">settings</span>
+<span class="font-label text-xs uppercase tracking-widest">Settings</span>
+</div>
+<div class="flex items-center gap-4 text-on-surface-variant/60 cursor-pointer hover:text-primary transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="help_outline" style="font-variation-settings: 'FILL' 0;">help_outline</span>
+<span class="font-label text-xs uppercase tracking-widest">Support</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-72 min-h-screen bg-background pb-20">
+<!-- Updated Top Bar with Search and Navigation Tabs -->
+<header class="sticky top-0 z-40 bg-surface/80 backdrop-blur-md px-12 h-24 flex items-center justify-between border-b border-surface-container-low">
+<div class="flex items-center gap-12 flex-1">
+<div class="flex items-center gap-8 border-r border-surface-container pr-8 h-10">
+<a class="font-label text-xs uppercase tracking-widest text-primary border-b-2 border-primary pb-1" href="#">Home</a>
+<a class="font-label text-xs uppercase tracking-widest text-on-surface-variant/60 hover:text-primary transition-colors pb-1 border-b-2 border-transparent" href="#">Planner</a>
+<a class="font-label text-xs uppercase tracking-widest text-on-surface-variant/60 hover:text-primary transition-colors pb-1 border-b-2 border-transparent" href="#">AI Compare</a>
+</div>
+<div class="flex-1 max-w-lg relative group">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant/40" data-icon="search">search</span>
+<input class="w-full h-12 bg-surface-container-lowest border-none rounded-lg pl-12 pr-4 font-body text-sm focus:ring-1 focus:ring-primary/20 placeholder:text-on-surface-variant/30" placeholder="Search 2,400+ archive courses..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6 ml-8">
+<button class="relative text-on-surface-variant hover:text-primary transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-primary rounded-full border-2 border-surface"></span>
+</button>
+<div class="h-8 w-px bg-surface-container"></div>
+<a class="flex items-center gap-2 text-on-surface-variant hover:text-primary transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_circle</span>
+<span class="font-label text-xs uppercase tracking-widest font-medium">Profile</span>
+</a>
+</div>
+</header>
+<section class="px-12 pt-12">
+<!-- Hero Section -->
+<div class="relative overflow-hidden bg-surface-container rounded-xl p-16 mb-16 flex items-center justify-between border border-surface-container-highest/20">
+<div class="max-w-xl z-10">
+<span class="font-label text-xs uppercase tracking-[0.3em] text-primary mb-4 block font-bold">Recommended for you</span>
+<h2 class="font-newsreader text-6xl italic leading-tight text-primary mb-6">Curated for Your Degree</h2>
+<p class="font-body text-lg text-on-surface-variant leading-relaxed mb-8">
+                    Based on your Computer Science track and completed prerequisites, we've analyzed the historical data of 400-level electives to find your optimal path.
+                </p>
+<div class="flex gap-4">
+<button class="bg-primary text-surface px-8 py-3 rounded-md font-label text-sm uppercase tracking-widest hover:brightness-110 transition-colors">
+                        Explore CS Track
+                    </button>
+<button class="border border-outline-variant text-on-surface-variant px-8 py-3 rounded-md font-label text-sm uppercase tracking-widest hover:bg-surface-variant transition-colors">
+                        View Roadmap
+                    </button>
+</div>
+</div>
+<div class="relative hidden lg:block">
+<div class="w-72 h-96 bg-primary/5 rounded-2xl rotate-6 absolute -top-12 -left-12 blur-2xl"></div>
+<div class="relative bg-surface-container-lowest p-8 rounded-xl shadow-xl w-64 border border-surface-container-highest">
+<div class="flex justify-between items-start mb-6">
+<div class="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center">
+<span class="material-symbols-outlined text-primary" data-icon="auto_awesome">auto_awesome</span>
+</div>
+<span class="font-label text-[10px] text-on-surface-variant border border-surface-container px-2 py-1 rounded italic">Fall '24</span>
+</div>
+<p class="font-newsreader text-xl italic mb-1 text-primary">CSCE 411</p>
+<p class="font-label text-[10px] text-on-surface-variant uppercase tracking-widest mb-4">Design &amp; Analysis of Algorithms</p>
+<div class="space-y-2">
+<div class="h-1.5 w-full bg-surface-container rounded-full overflow-hidden">
+<div class="h-full w-3/4 bg-primary rounded-full"></div>
+</div>
+<p class="font-label text-[9px] text-on-surface-variant">Recommended: 88% Match</p>
+</div>
+</div>
+<div class="absolute -bottom-6 -right-6 bg-surface p-4 rounded-lg shadow-lg border border-surface-container-highest w-48 rotate-[-3deg]">
+<p class="font-newsreader text-lg italic text-on-surface">92% Average Pass</p>
+<p class="font-label text-[9px] uppercase tracking-tighter text-on-surface-variant">Historical Grade Trend</p>
+</div>
+</div>
+</div>
+<!-- Bento Content Grid -->
+<div class="grid grid-cols-12 gap-8">
+<!-- Main Discovery Area -->
+<div class="col-span-12 lg:col-span-8 space-y-12">
+<div>
+<div class="flex justify-between items-end mb-8">
+<h3 class="font-newsreader text-4xl italic text-primary">Department Archives</h3>
+<a class="font-label text-xs uppercase tracking-widest text-on-surface-variant hover:text-primary transition-colors border-b border-surface-container" href="#">See all 42 departments</a>
+</div>
+<div class="grid grid-cols-2 gap-6">
+<!-- Department Card 1 -->
+<div class="group bg-surface-container-low p-8 rounded-xl hover:bg-surface-container-high transition-all cursor-pointer border border-transparent hover:border-outline-variant/30">
+<div class="flex justify-between items-start mb-6">
+<span class="material-symbols-outlined text-primary opacity-40 group-hover:opacity-100 transition-opacity" data-icon="terminal">terminal</span>
+<span class="font-label text-[10px] bg-primary text-surface px-3 py-1 rounded-full">142 Courses</span>
+</div>
+<h4 class="font-newsreader text-2xl italic text-primary mb-2">Computer Science</h4>
+<p class="font-body text-sm text-on-surface-variant leading-relaxed">Engineering &amp; mathematics focused coursework including systems and AI.</p>
+</div>
+<!-- Department Card 2 -->
+<div class="group bg-surface-container-low p-8 rounded-xl hover:bg-surface-container-high transition-all cursor-pointer border border-transparent hover:border-outline-variant/30">
+<div class="flex justify-between items-start mb-6">
+<span class="material-symbols-outlined text-primary opacity-40 group-hover:opacity-100 transition-opacity" data-icon="architecture">architecture</span>
+<span class="font-label text-[10px] bg-secondary-container text-on-secondary-container px-3 py-1 rounded-full">89 Courses</span>
+</div>
+<h4 class="font-newsreader text-2xl italic text-primary mb-2">Visualization</h4>
+<p class="font-body text-sm text-on-surface-variant leading-relaxed">The intersection of digital art, design history, and technical rendering.</p>
+</div>
+</div>
+</div>
+<!-- Trending Courses -->
+<div>
+<h3 class="font-newsreader text-4xl italic text-primary mb-8">Trending This Semester</h3>
+<div class="space-y-4">
+<div class="flex items-center justify-between p-6 bg-surface-container-lowest rounded-lg group hover:bg-surface-container transition-all">
+<div class="flex items-center gap-8">
+<span class="font-label text-2xl font-light text-on-surface-variant/20 group-hover:text-primary/20 transition-colors">01</span>
+<div>
+<p class="font-newsreader text-xl italic text-on-surface group-hover:text-primary transition-colors">HIST 105: History of the United States</p>
+<p class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mt-1">Core Requirement • Prof. Smith • 4.8 Rating</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant bg-surface-container px-3 py-1 rounded">High Demand</span>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors" data-icon="add_circle">add_circle</button>
+</div>
+</div>
+<div class="flex items-center justify-between p-6 bg-surface-container-lowest rounded-lg group hover:bg-surface-container transition-all">
+<div class="flex items-center gap-8">
+<span class="font-label text-2xl font-light text-on-surface-variant/20 group-hover:text-primary/20 transition-colors">02</span>
+<div>
+<p class="font-newsreader text-xl italic text-on-surface group-hover:text-primary transition-colors">CSCE 482: Senior Capstone Design</p>
+<p class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mt-1">Major Course • Prof. Richie • 4.2 Rating</p>
+</div>
+</div>
+<div class="flex items-center gap-4">
+<span class="font-label text-[10px] uppercase tracking-widest text-on-secondary-container bg-secondary-container px-3 py-1 rounded">Prereq Required</span>
+<button class="material-symbols-outlined text-on-surface-variant hover:text-primary transition-colors" data-icon="add_circle">add_circle</button>
+</div>
+</div>
+</div>
+</div>
+</div>
+<!-- Sidebar Insights -->
+<div class="col-span-12 lg:col-span-4 space-y-8">
+<!-- AI Insight Card - Curator AI Assist -->
+<div class="bg-primary text-surface p-8 rounded-xl relative overflow-hidden group">
+<div class="absolute top-0 right-0 w-32 h-32 bg-white/10 blur-3xl -mr-16 -mt-16 group-hover:scale-150 transition-transform duration-700"></div>
+<div class="relative z-10">
+<div class="flex items-center gap-2 mb-6">
+<span class="material-symbols-outlined text-surface/80" data-icon="auto_awesome" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<span class="font-label text-xs uppercase tracking-widest text-surface/60">Curator AI Assist</span>
+</div>
+<h4 class="font-newsreader text-2xl italic mb-4">You are 3 credits away from your 'Data Science' minor.</h4>
+<p class="font-body text-sm text-surface/70 leading-relaxed mb-6">
+                            CSCE 421 (Machine Learning) is being offered by Dr. Caverlee this spring. Historically, 85% of CS majors with your profile take this course.
+                        </p>
+<button class="w-full bg-surface text-primary py-3 rounded-md font-label text-xs uppercase tracking-widest hover:brightness-95 active:scale-95 transition-all">
+                            Add to Planner
+                        </button>
+</div>
+</div>
+<!-- Semester Cart Preview -->
+<div class="bg-surface-container p-8 rounded-xl">
+<div class="flex justify-between items-center mb-6">
+<h4 class="font-newsreader text-2xl italic text-primary">Semester Cart</h4>
+<span class="font-label text-xs text-on-surface-variant">2 Courses</span>
+</div>
+<div class="space-y-4 mb-8">
+<div class="bg-surface-container-lowest p-4 rounded border border-dashed border-outline-variant">
+<div class="flex justify-between items-start">
+<div>
+<p class="font-label text-[10px] text-primary font-bold mb-1">CSCE 411</p>
+<p class="font-newsreader italic text-sm">Algorithms</p>
+</div>
+<button class="material-symbols-outlined text-xs text-on-surface-variant hover:text-error" data-icon="close">close</button>
+</div>
+</div>
+<div class="bg-surface-container-lowest p-4 rounded border border-dashed border-outline-variant">
+<div class="flex justify-between items-start">
+<div>
+<p class="font-label text-[10px] text-primary font-bold mb-1">ENGR 482</p>
+<p class="font-newsreader italic text-sm">Ethics in Engineering</p>
+</div>
+<button class="material-symbols-outlined text-xs text-on-surface-variant hover:text-error" data-icon="close">close</button>
+</div>
+</div>
+</div>
+<div class="border-t border-surface-container-highest pt-6">
+<div class="flex justify-between text-on-surface-variant mb-4">
+<span class="font-label text-[10px] uppercase tracking-widest">Total Credits</span>
+<span class="font-body text-sm font-bold">6.0</span>
+</div>
+<button class="w-full border border-primary text-primary py-3 rounded-md font-label text-xs uppercase tracking-widest hover:bg-primary hover:text-surface transition-all">
+                            Review &amp; Validate
+                        </button>
+</div>
+</div>
+<!-- Historical Context -->
+<div class="p-8 border-2 border-surface-container-highest/20 rounded-xl">
+<h4 class="font-newsreader text-xl italic text-primary mb-4">System Update</h4>
+<p class="font-body text-xs text-on-surface-variant leading-relaxed">
+                        Course offerings for Fall 2024 are now fully indexed. We've updated GPA distributions for all Liberal Arts courses based on the previous 10-year archive.
+                    </p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Floating Action Button -->
+</body></html>

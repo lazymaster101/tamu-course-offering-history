@@ -2,17 +2,22 @@ import {
   hasSavedCourse,
   saveCourse,
   removeCourse,
+  subscribeToSavedCourses,
   formatSavedCourseCode
 } from "./saved-courses.js";
 import {
   hasCompareSource,
-  saveCompareSource
+  toggleCompareSource
 } from "./compare-sources.js";
-import { startSavedCourseBadgeSync } from "./page-shell.js";
+import {
+  attachCourseAutocomplete,
+  startSavedCourseBadgeSync
+} from "./page-shell.js";
 
 const state = {
   activeCourseKey: null,
-  activeCampus: "college-station"
+  activeCampus: "college-station",
+  results: []
 };
 
 const elements = {
@@ -36,6 +41,7 @@ function setLoading(button, isLoading, label) {
 }
 
 function showResultsState(message) {
+  state.results = [];
   elements.resultsState.hidden = false;
   elements.resultsState.textContent = message;
   elements.resultsList.hidden = true;
@@ -107,9 +113,9 @@ function updateCourseSaveControls(course, cartButton, favoriteButton) {
   const savedCourse = toSavedCourse(course);
   setResultActionState(
     cartButton,
-    hasSavedCourse("cart", savedCourse),
-    "In cart",
-    "Add to cart"
+    hasSavedCourse("plan", savedCourse),
+    "In semester plan",
+    "Add to semester plan"
   );
   setResultActionState(
     favoriteButton,
@@ -120,6 +126,7 @@ function updateCourseSaveControls(course, cartButton, favoriteButton) {
 }
 
 function renderResults(results) {
+  state.results = Array.isArray(results) ? [...results] : [];
   elements.resultsList.innerHTML = "";
 
   if (!results.length) {
@@ -159,10 +166,10 @@ function renderResults(results) {
     cartButton.addEventListener("click", () => {
       const savedCourse = toSavedCourse(course);
 
-      if (hasSavedCourse("cart", savedCourse)) {
-        removeCourse("cart", savedCourse);
+      if (hasSavedCourse("plan", savedCourse)) {
+        removeCourse("plan", savedCourse);
       } else {
-        saveCourse("cart", savedCourse);
+        saveCourse("plan", savedCourse);
       }
 
       renderResults(results);
@@ -353,7 +360,7 @@ function buildCompareSource(group, courseContext) {
 
 function setCompareButtonState(button, compareSource) {
   const isQueued = hasCompareSource(compareSource);
-  button.textContent = isQueued ? "Queued for AI" : "Add to AI compare";
+  button.textContent = isQueued ? "Shortlisted" : "Shortlist professor";
   button.classList.toggle("is-active", isQueued);
 }
 
@@ -442,11 +449,13 @@ function createSyllabusGroupCard(group, courseContext) {
       compareButton.type = "button";
       setCompareButtonState(compareButton, compareSource);
       compareButton.addEventListener("click", () => {
-        saveCompareSource(compareSource);
+        const wasAdded = toggleCompareSource(compareSource);
         setCompareButtonState(compareButton, compareSource);
         setSectionStatus(
           syllabusState,
-          "Queued for AI compare. Stay here and keep adding syllabi, or open AI Compare from the nav when ready."
+          wasAdded
+            ? "Added to your section shortlist. Open AI Compare when you are ready to compare professors."
+            : "Removed from your section shortlist."
         );
       });
       wrapper.append(compareButton);
@@ -546,6 +555,12 @@ function formatHistorySummary(history) {
 
 function updateExplorerUrl(subject, courseNumber) {
   const nextUrl = new URL(window.location.href);
+  const query = elements.query.value.trim();
+  if (query) {
+    nextUrl.searchParams.set("q", query);
+  } else {
+    nextUrl.searchParams.delete("q");
+  }
   nextUrl.searchParams.set("subject", subject);
   nextUrl.searchParams.set("course", courseNumber);
   nextUrl.searchParams.set("campus", state.activeCampus);
@@ -721,6 +736,13 @@ async function handleSearch(event) {
     return;
   }
 
+  const nextUrl = new URL(window.location.href);
+  nextUrl.searchParams.set("q", query);
+  nextUrl.searchParams.set("campus", campus);
+  nextUrl.searchParams.delete("subject");
+  nextUrl.searchParams.delete("course");
+  window.history.replaceState({}, "", nextUrl);
+
   showResultsState("Searching course catalog history...");
   showHistoryState("Search results will drive the semester timeline.");
   setLoading(elements.searchButton, true, "Working...");
@@ -750,6 +772,7 @@ async function handleSearch(event) {
 
 async function initializeFromUrl() {
   const url = new URL(window.location.href);
+  const sharedQuery = url.searchParams.get("q")?.trim();
   const subject = url.searchParams.get("subject")?.trim().toUpperCase();
   const courseNumber = url.searchParams.get("course")?.trim().toUpperCase();
   const campus = url.searchParams.get("campus")?.trim().toLowerCase();
@@ -760,6 +783,40 @@ async function initializeFromUrl() {
   }
 
   if (!subject || !courseNumber) {
+    if (!sharedQuery) {
+      return;
+    }
+
+    elements.query.value = sharedQuery;
+    showResultsState("Loading shared search...");
+    showHistoryState("Search results will drive the semester timeline.");
+    setLoading(elements.searchButton, true, "Working...");
+
+    try {
+      const payload = await fetchJson(
+        `/api/search-courses?q=${encodeURIComponent(sharedQuery)}&campus=${encodeURIComponent(
+          state.activeCampus
+        )}`
+      );
+
+      renderResults(payload.results);
+
+      if (payload.results.length === 1) {
+        const onlyMatch = payload.results[0];
+        state.activeCourseKey = `${onlyMatch.subject}-${onlyMatch.courseNumber}`;
+        renderResults(payload.results);
+        await loadHistory(onlyMatch.subject, onlyMatch.courseNumber);
+      } else {
+        showHistoryState(
+          "Select one of the course matches on the left to load its semester-by-semester offering history."
+        );
+      }
+    } catch (error) {
+      showResultsState(error.message);
+      showHistoryState("Could not load the shared search.");
+    } finally {
+      setLoading(elements.searchButton, false, "Search offerings");
+    }
     return;
   }
 
@@ -798,5 +855,11 @@ async function initializeFromUrl() {
 }
 
 elements.form.addEventListener("submit", handleSearch);
+attachCourseAutocomplete(elements.query, () => elements.campus.value || state.activeCampus);
 startSavedCourseBadgeSync();
+subscribeToSavedCourses(() => {
+  if (state.results.length) {
+    renderResults(state.results);
+  }
+});
 initializeFromUrl();

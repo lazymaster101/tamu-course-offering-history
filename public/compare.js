@@ -456,7 +456,7 @@ function addMessage(message) {
 function formatQueuedSourceCourse(source) {
   return source.subject && source.courseNumber
     ? `${source.subject} ${source.courseNumber}`
-    : "Queued syllabus";
+    : "Shortlisted syllabus";
 }
 
 function formatQueuedSourceMeta(source) {
@@ -661,7 +661,7 @@ async function handleCompareSubmit(event) {
       role: "user",
       badge: "Initial compare",
       content: displayPrompt,
-      meta: `${items.length} syllabus sources queued for this comparison.`
+      meta: `${items.length} shortlisted syllabus sources selected for this comparison.`
     });
     setTyping(true, "Reading syllabi and building the comparison.");
 

@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Your Favorites | Aggie Curator</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Space+Grotesk:wght@300..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    colors: {
+                        "on-primary": "#ffffff",
+                        "primary": "#270000",
+                        "inverse-on-surface": "#f3f0ed",
+                        "surface-tint": "#a33d2f",
+                        "outline": "#8a716e",
+                        "tertiary": "#180a00",
+                        "surface-container-high": "#eae8e5",
+                        "on-primary-fixed": "#410000",
+                        "surface-variant": "#e5e2df",
+                        "primary-container": "#500000",
+                        "on-secondary-fixed": "#1e1b18",
+                        "inverse-primary": "#ffb4a8",
+                        "error-container": "#ffdad6",
+                        "primary-fixed": "#ffdad4",
+                        "on-primary-container": "#dc6756",
+                        "on-secondary-fixed-variant": "#4b4642",
+                        "surface": "#fcf9f6",
+                        "on-tertiary-fixed": "#291803",
+                        "tertiary-container": "#321f08",
+                        "on-primary-fixed-variant": "#83251b",
+                        "surface-container-highest": "#e5e2df",
+                        "background": "#fcf9f6",
+                        "surface-container-low": "#f6f3f0",
+                        "on-tertiary-container": "#a38567",
+                        "secondary-container": "#e6ded9",
+                        "on-background": "#1c1c1a",
+                        "on-surface-variant": "#57423f",
+                        "on-secondary": "#ffffff",
+                        "inverse-surface": "#31302f",
+                        "on-tertiary": "#ffffff",
+                        "on-surface": "#1c1c1a",
+                        "surface-dim": "#dcdad7",
+                        "surface-bright": "#fcf9f6",
+                        "error": "#ba1a1a",
+                        "on-tertiary-fixed-variant": "#5a4229",
+                        "secondary-fixed": "#e9e1dc",
+                        "tertiary-fixed-dim": "#e3c19f",
+                        "tertiary-fixed": "#ffddbb",
+                        "on-secondary-container": "#67625e",
+                        "on-error": "#ffffff",
+                        "primary-fixed-dim": "#ffb4a8",
+                        "outline-variant": "#ddc0bb",
+                        "surface-container-lowest": "#ffffff",
+                        "surface-container": "#f0edea",
+                        "secondary": "#635d5a",
+                        "on-error-container": "#93000a",
+                        "secondary-fixed-dim": "#cdc5c0"
+                    },
+                    fontFamily: {
+                        "headline": ["Newsreader"],
+                        "body": ["Space Grotesk"],
+                        "label": ["Space Grotesk"]
+                    },
+                    borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+                },
+            },
+        }
+    </script>
+<style>
+        body { font-family: 'Space Grotesk', sans-serif; background-color: #fcf9f6; }
+        .font-newsreader { font-family: 'Newsreader', serif; }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .filled-icon {
+            font-variation-settings: 'FILL' 1;
+        }
+    </style>
+</head>
+<body class="bg-background text-on-background font-body min-h-screen text-on-surface overflow-x-hidden">
+<!-- Sidebar Navigation (Matching SCREEN_36) -->
+<aside class="fixed left-0 top-0 flex flex-col h-screen w-72 border-r border-surface-container bg-surface z-50 py-8">
+<div class="px-8 mb-12">
+<h1 class="font-newsreader text-2xl italic text-primary-container font-bold">The Curator</h1>
+<p class="font-label text-[10px] uppercase tracking-[0.2em] text-on-surface-variant mt-1">TAMU Course History</p>
+</div>
+<nav class="flex-1 space-y-2">
+<div class="flex items-center gap-4 text-on-surface-variant/60 px-6 py-4 hover:bg-surface-variant/30 transition-all cursor-pointer">
+<span class="material-symbols-outlined" data-icon="explore">explore</span>
+<span class="font-label text-sm uppercase font-medium tracking-widest">Explore</span>
+</div>
+<div class="flex items-center gap-4 text-on-surface-variant/60 px-6 py-4 hover:bg-surface-variant/30 transition-all cursor-pointer">
+<span class="material-symbols-outlined" data-icon="shopping_cart">shopping_cart</span>
+<span class="font-label text-sm uppercase font-medium tracking-widest">Cart</span>
+</div>
+<!-- Active Navigation for Favorites (Using primary-container as per SCREEN_36 active states) -->
+<div class="flex items-center gap-4 bg-surface-container text-primary-container rounded-r-lg px-6 py-4 mr-4 cursor-pointer transition-all duration-200">
+<span class="material-symbols-outlined" data-icon="bookmark" style="font-variation-settings: 'FILL' 1;">bookmark</span>
+<span class="font-label text-sm uppercase font-medium tracking-widest">Favorites</span>
+</div>
+</nav>
+<div class="px-8 mt-auto pt-8 border-t border-surface-container">
+<div class="flex items-center gap-3 mb-8">
+<div class="w-10 h-10 rounded-full bg-surface-container-highest overflow-hidden">
+<img alt="Academic Profile" class="w-full h-full object-cover" data-alt="User profile avatar icon" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBtQCwLyKwG-uPCZe4Cgm9-C7kTDLvI63hOBXUh_1HWThRuubJXj_aMiz3MFFbt8jT5ke0TtSLeF2vKNOM6H5M6gX2lIxYjf3K2qEjrxyboHuGRrkkCCe1jpT0jQroi0p2fI06vU374H9HaW-BZkoOQFtbkSkx8ZQLOoQ-NVIczc7cYCbozhhyJn8pR_Cbi_io_r-MUxuKxFkPbpKKKGwDsvRIVC8mPx88ylauXNdxvB88NbXqPK71J-ASDl-NwBZSAqu-_BAJR3ic"/>
+</div>
+<div>
+<p class="font-label text-xs font-bold text-on-surface">J. Reveles</p>
+<p class="font-label text-[10px] text-on-surface-variant uppercase tracking-tighter">Computer Science '25</p>
+</div>
+</div>
+<div class="space-y-4">
+<div class="flex items-center gap-4 text-on-surface-variant/60 cursor-pointer hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="settings">settings</span>
+<span class="font-label text-xs uppercase tracking-widest">Settings</span>
+</div>
+<div class="flex items-center gap-4 text-on-surface-variant/60 cursor-pointer hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined text-sm" data-icon="help_outline">help_outline</span>
+<span class="font-label text-xs uppercase tracking-widest">Support</span>
+</div>
+</div>
+</div>
+</aside>
+<!-- Main Content Canvas -->
+<main class="ml-72 min-h-screen bg-background">
+<!-- Top Bar Navigation (Matching SCREEN_36) -->
+<header class="sticky top-0 z-40 bg-surface/80 backdrop-blur-md px-12 h-24 flex items-center justify-between border-b border-surface-container-low">
+<div class="flex items-center gap-12 flex-1">
+<div class="flex items-center gap-8 border-r border-surface-container pr-8 h-10">
+<a class="font-label text-xs uppercase tracking-widest text-on-surface-variant/60 hover:text-primary-container transition-colors pb-1 border-b-2 border-transparent" href="#">Home</a>
+<a class="font-label text-xs uppercase tracking-widest text-on-surface-variant/60 hover:text-primary-container transition-colors pb-1 border-b-2 border-transparent" href="#">Planner</a>
+<a class="font-label text-xs uppercase tracking-widest text-on-surface-variant/60 hover:text-primary-container transition-colors pb-1 border-b-2 border-transparent" href="#">AI Compare</a>
+</div>
+<div class="flex-1 max-w-lg relative group">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant/40" data-icon="search">search</span>
+<input class="w-full h-12 bg-surface-container-lowest border-none rounded-lg pl-12 pr-4 font-body text-sm focus:ring-1 focus:ring-primary-container/20 placeholder:text-on-surface-variant/30" placeholder="Search 2,400+ archive courses..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6 ml-8">
+<button class="relative text-on-surface-variant hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-primary-container rounded-full border-2 border-surface"></span>
+</button>
+<div class="h-8 w-px bg-surface-container"></div>
+<a class="flex items-center gap-2 text-on-surface-variant hover:text-primary-container transition-colors" href="#">
+<span class="material-symbols-outlined">account_circle</span>
+<span class="font-label text-xs uppercase tracking-widest font-medium">Profile</span>
+</a>
+</div>
+</header>
+<div class="px-12 pt-12 pb-12">
+<div class="flex gap-12 max-w-7xl mx-auto">
+<!-- Left Column: Favorites Grid -->
+<div class="flex-1">
+<header class="mb-12">
+<h1 class="text-6xl font-headline font-bold text-primary-container tracking-tight italic mb-2">Your Favorites</h1>
+<p class="text-on-surface-variant font-label text-lg">A curated library of courses for long-term reference.</p>
+</header>
+<div class="grid grid-cols-1 xl:grid-cols-2 gap-8">
+<!-- Course Card 1 -->
+<div class="bg-surface-container p-6 rounded-xl flex flex-col justify-between border-none transition-all hover:bg-surface-container-high group">
+<div class="flex justify-between items-start mb-6">
+<div>
+<span class="bg-tertiary-fixed text-on-tertiary-fixed text-xs font-bold font-label px-2 py-1 rounded mb-2 inline-block uppercase tracking-wider">Engineering</span>
+<h3 class="text-3xl font-headline font-bold text-on-surface leading-none">CSCE 221</h3>
+<p class="text-on-surface-variant font-body mt-1">Data Structures and Algorithms</p>
+</div>
+<div class="text-right">
+<div class="text-2xl font-headline font-bold text-primary-container">3.42</div>
+<div class="text-[10px] font-label uppercase tracking-widest text-on-secondary-container">Avg Grade</div>
+</div>
+</div>
+<div class="space-y-4">
+<button class="w-full py-2 bg-surface-container-lowest text-on-surface font-label text-sm font-bold rounded-md flex items-center justify-center gap-2 border border-outline-variant/10 group-hover:border-primary-container/20 transition-all">
+<span class="material-symbols-outlined text-sm">history</span>
+                                View History
+                            </button>
+<div class="flex gap-2">
+<button class="flex-1 py-2 bg-primary-container text-on-primary text-xs font-bold font-label rounded-md uppercase tracking-wider hover:brightness-90 transition-all">
+                                    Move to Cart
+                                </button>
+<button class="p-2 text-error hover:bg-error-container/20 rounded-md transition-colors" title="Remove from Favorites">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Course Card 2 -->
+<div class="bg-surface-container p-6 rounded-xl flex flex-col justify-between border-none transition-all hover:bg-surface-container-high group">
+<div class="flex justify-between items-start mb-6">
+<div>
+<span class="bg-secondary-fixed text-on-secondary-fixed text-xs font-bold font-label px-2 py-1 rounded mb-2 inline-block uppercase tracking-wider">Mathematics</span>
+<h3 class="text-3xl font-headline font-bold text-on-surface leading-none">MATH 251</h3>
+<p class="text-on-surface-variant font-body mt-1">Engineering Mathematics III</p>
+</div>
+<div class="text-right">
+<div class="text-2xl font-headline font-bold text-primary-container">2.88</div>
+<div class="text-[10px] font-label uppercase tracking-widest text-on-secondary-container">Avg Grade</div>
+</div>
+</div>
+<div class="space-y-4">
+<button class="w-full py-2 bg-surface-container-lowest text-on-surface font-label text-sm font-bold rounded-md flex items-center justify-center gap-2 border border-outline-variant/10 group-hover:border-primary-container/20 transition-all">
+<span class="material-symbols-outlined text-sm">history</span>
+                                View History
+                            </button>
+<div class="flex gap-2">
+<button class="flex-1 py-2 bg-primary-container text-on-primary text-xs font-bold font-label rounded-md uppercase tracking-wider hover:brightness-90 transition-all">
+                                    Move to Cart
+                                </button>
+<button class="p-2 text-error hover:bg-error-container/20 rounded-md transition-colors" title="Remove from Favorites">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Course Card 3 -->
+<div class="bg-surface-container p-6 rounded-xl flex flex-col justify-between border-none transition-all hover:bg-surface-container-high group">
+<div class="flex justify-between items-start mb-6">
+<div>
+<span class="bg-surface-variant text-on-surface-variant text-xs font-bold font-label px-2 py-1 rounded mb-2 inline-block uppercase tracking-wider">Liberal Arts</span>
+<h3 class="text-3xl font-headline font-bold text-on-surface leading-none">HIST 105</h3>
+<p class="text-on-surface-variant font-body mt-1">History of the United States</p>
+</div>
+<div class="text-right">
+<div class="text-2xl font-headline font-bold text-primary-container">3.75</div>
+<div class="text-[10px] font-label uppercase tracking-widest text-on-secondary-container">Avg Grade</div>
+</div>
+</div>
+<div class="space-y-4">
+<button class="w-full py-2 bg-surface-container-lowest text-on-surface font-label text-sm font-bold rounded-md flex items-center justify-center gap-2 border border-outline-variant/10 group-hover:border-primary-container/20 transition-all">
+<span class="material-symbols-outlined text-sm">history</span>
+                                View History
+                            </button>
+<div class="flex gap-2">
+<button class="flex-1 py-2 bg-primary-container text-on-primary text-xs font-bold font-label rounded-md uppercase tracking-wider hover:brightness-90 transition-all">
+                                    Move to Cart
+                                </button>
+<button class="p-2 text-error hover:bg-error-container/20 rounded-md transition-colors" title="Remove from Favorites">
+<span class="material-symbols-outlined">delete</span>
+</button>
+</div>
+</div>
+</div>
+<!-- Add New Favorite Placeholder -->
+<div class="bg-surface-container-low border-2 border-dashed border-outline-variant p-6 rounded-xl flex flex-col items-center justify-center text-on-surface-variant hover:bg-surface-container transition-colors cursor-pointer group">
+<span class="material-symbols-outlined text-4xl mb-2 group-hover:scale-110 transition-transform">bookmark_add</span>
+<p class="font-label font-bold uppercase tracking-widest text-sm">Explore More Courses</p>
+</div>
+</div>
+</div>
+<!-- Right Column: AI Insights (Matching primary-container styling) -->
+<aside class="w-80">
+<div class="sticky top-24 space-y-8">
+<div class="bg-surface-container-lowest p-8 rounded-xl shadow-xl shadow-stone-200/30">
+<div class="flex items-center gap-2 mb-6 text-primary-container">
+<span class="material-symbols-outlined filled-icon" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+<h4 class="font-headline font-bold text-xl italic">Curator AI Assist</h4>
+</div>
+<div class="space-y-6">
+<section>
+<h5 class="font-label text-xs font-bold uppercase tracking-widest text-on-secondary-container mb-3">Favorites Insight</h5>
+<div class="bg-surface-container-low p-4 rounded-lg border-l-4 border-primary-container">
+<p class="text-sm font-body leading-relaxed text-on-surface">
+                                        You have <strong class="text-primary-container">4 courses</strong> saved for next year's electives. 
+                                        Three of these typically fill up within the first 48 hours of registration.
+                                    </p>
+</div>
+</section>
+<section>
+<h5 class="font-label text-xs font-bold uppercase tracking-widest text-on-secondary-container mb-3">Archive Trends</h5>
+<ul class="space-y-3">
+<li class="flex items-center gap-3 text-xs font-body">
+<div class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed-dim"></div>
+<span>CSCE 221 workload is rated 4.5/5.</span>
+</li>
+<li class="flex items-center gap-3 text-xs font-body">
+<div class="w-1.5 h-1.5 rounded-full bg-tertiary-fixed-dim"></div>
+<span>MATH 251 historical curve: 12%.</span>
+</li>
+</ul>
+</section>
+<button class="w-full py-3 bg-primary-container text-on-primary font-label font-bold text-xs uppercase tracking-widest rounded-lg hover:brightness-110 transition-all">
+                                Detailed Analysis
+                            </button>
+</div>
+</div>
+</div>
+</aside>
+</div>
+</div>
+</main>
+</body></html>

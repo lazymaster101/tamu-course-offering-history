@@ -1,0 +1,342 @@
+<!DOCTYPE html>
+
+<html class="light" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>AI Compare | The Academic Curator</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,200..800;1,6..72,200..800&amp;family=Space+Grotesk:wght@300..700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "error-container": "#ffdad6",
+              "outline-variant": "#ddc0bb",
+              "inverse-primary": "#ffb4a8",
+              "tertiary-container": "#321f08",
+              "surface-container": "#f0edea",
+              "surface-container-highest": "#e5e2df",
+              "on-tertiary": "#ffffff",
+              "on-surface-variant": "#57423f",
+              "primary": "#270000",
+              "on-primary-fixed-variant": "#83251b",
+              "inverse-on-surface": "#f3f0ed",
+              "surface-variant": "#e5e2df",
+              "on-tertiary-container": "#a38567",
+              "background": "#fcf9f6",
+              "error": "#ba1a1a",
+              "on-secondary-fixed": "#1e1b18",
+              "surface-container-high": "#eae8e5",
+              "surface-tint": "#a33d2f",
+              "outline": "#8a716e",
+              "secondary-container": "#e6ded9",
+              "surface": "#fcf9f6",
+              "on-tertiary-fixed-variant": "#5a4229",
+              "on-tertiary-fixed": "#291803",
+              "tertiary-fixed": "#ffddbb",
+              "primary-container": "#500000",
+              "secondary-fixed-dim": "#cdc5c0",
+              "on-secondary-fixed-variant": "#4b4642",
+              "on-surface": "#1c1c1a",
+              "secondary": "#635d5a",
+              "surface-bright": "#fcf9f6",
+              "secondary-fixed": "#e9e1dc",
+              "on-primary-fixed": "#410000",
+              "primary-fixed": "#ffdad4",
+              "primary-fixed-dim": "#ffb4a8",
+              "on-primary": "#ffffff",
+              "inverse-surface": "#31302f",
+              "on-secondary": "#ffffff",
+              "on-secondary-container": "#67625e",
+              "on-error": "#ffffff",
+              "on-background": "#1c1c1a",
+              "tertiary-fixed-dim": "#e3c19f",
+              "surface-dim": "#dcdad7",
+              "on-primary-container": "#dc6756",
+              "tertiary": "#180a00",
+              "surface-container-lowest": "#ffffff",
+              "surface-container-low": "#f6f3f0",
+              "on-error-container": "#93000a"
+            },
+            fontFamily: {
+              "headline": ["Newsreader", "serif"],
+              "body": ["Space Grotesk", "sans-serif"],
+              "label": ["Space Grotesk", "sans-serif"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            vertical-align: middle;
+        }
+        body { font-family: 'Space Grotesk', sans-serif; }
+        h1, h2, h3 { font-family: 'Newsreader', serif; }
+        .glass-nav {
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+        }
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: #e5e2df; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #cdc5c0; }
+    </style>
+</head>
+<body class="bg-background text-on-surface flex flex-col min-h-screen">
+<!-- Top Bar (Imported from SCREEN_17) -->
+<header class="fixed top-0 w-full z-50 bg-surface/80 backdrop-blur-md px-12 h-24 flex items-center justify-between border-b border-surface-container-low">
+<div class="flex items-center gap-12 flex-1">
+<div class="flex flex-col">
+<h1 class="font-headline text-2xl italic text-primary-container font-bold leading-none">The Curator</h1>
+<p class="font-label text-[10px] uppercase tracking-[0.2em] text-on-surface-variant mt-1">TAMU Course History</p>
+</div>
+<div class="hidden md:flex items-center gap-8 border-r border-surface-container pr-8 h-10 ml-4">
+<a class="font-label text-xs uppercase tracking-widest text-on-surface-variant/60 hover:text-primary-container transition-colors pb-1 border-b-2 border-transparent" href="#">Home</a>
+<a class="font-label text-xs uppercase tracking-widest text-on-surface-variant/60 hover:text-primary-container transition-colors pb-1 border-b-2 border-transparent" href="#">Planner</a>
+<a class="font-label text-xs uppercase tracking-widest text-primary-container font-bold transition-colors pb-1 border-b-2 border-primary-container" href="#">AI Compare</a>
+</div>
+<div class="flex-1 max-w-lg relative group">
+<span class="absolute left-4 top-1/2 -translate-y-1/2 material-symbols-outlined text-on-surface-variant/40" data-icon="search">search</span>
+<input class="w-full h-12 bg-surface-container-lowest border-none rounded-lg pl-12 pr-4 font-body text-sm focus:ring-1 focus:ring-primary-container/20 placeholder:text-on-surface-variant/30" placeholder="Search 2,400+ archive courses..." type="text"/>
+</div>
+</div>
+<div class="flex items-center gap-6 ml-8">
+<button class="relative text-on-surface-variant hover:text-primary-container transition-colors">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-0 right-0 w-2 h-2 bg-primary-container rounded-full border-2 border-surface"></span>
+</button>
+<div class="h-8 w-px bg-surface-container"></div>
+<a class="flex items-center gap-2 text-on-surface-variant hover:text-primary-container transition-colors" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">account_circle</span>
+<span class="font-label text-xs uppercase tracking-widest font-medium">Profile</span>
+</a>
+</div>
+</header>
+<main class="flex flex-1 pt-24 h-screen overflow-hidden">
+<!-- SideNavBar (Source Management) -->
+<aside class="w-80 bg-surface-container flex flex-col py-6 px-6 border-r-0 shrink-0">
+<div class="mb-8">
+<h2 class="text-xl font-headline font-bold text-primary-container mb-1">Source Library</h2>
+<p class="text-xs font-label uppercase tracking-widest text-on-surface-variant">Manage Comparison Data</p>
+</div>
+<!-- Upload Area -->
+<div class="space-y-4 mb-8">
+<button class="w-full flex items-center justify-center gap-2 py-4 px-4 bg-surface-container-lowest border-2 border-dashed border-outline-variant rounded-lg hover:bg-surface-container-high transition-colors group">
+<span class="material-symbols-outlined text-primary-container">upload_file</span>
+<span class="text-sm font-medium text-on-surface-variant group-hover:text-primary-container">Upload Syllabus (PDF)</span>
+</button>
+<div class="relative">
+<input class="w-full pl-10 pr-4 py-3 bg-surface-container-lowest border-0 rounded-lg text-sm focus:ring-1 focus:ring-surface-tint" placeholder="Paste Syllabus URL..." type="text"/>
+<span class="material-symbols-outlined absolute left-3 top-1/2 -translate-y-1/2 text-on-surface-variant text-sm">link</span>
+</div>
+</div>
+<!-- Queued Sources -->
+<div class="flex-1 overflow-y-auto space-y-3">
+<div class="flex items-center justify-between mb-2">
+<span class="text-[10px] font-bold uppercase tracking-tighter text-on-surface-variant opacity-60">Active Context (2)</span>
+<span class="material-symbols-outlined text-xs text-on-surface-variant cursor-pointer">refresh</span>
+</div>
+<!-- Source Card 1 -->
+<div class="p-4 bg-primary-container text-surface rounded-lg shadow-sm transform translate-x-1 transition-transform">
+<div class="flex items-start justify-between">
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-surface-tint">description</span>
+<div>
+<p class="text-sm font-bold">CSCE 411 - Ritchey</p>
+<p class="text-[10px] opacity-70">Fall 2023 • Section 501</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-xs cursor-pointer">close</span>
+</div>
+</div>
+<!-- Source Card 2 -->
+<div class="p-4 bg-primary-container text-surface rounded-lg shadow-sm transform translate-x-1 transition-transform">
+<div class="flex items-start justify-between">
+<div class="flex gap-3">
+<span class="material-symbols-outlined text-surface-tint">description</span>
+<div>
+<p class="text-sm font-bold">CSCE 411 - Lupoli</p>
+<p class="text-[10px] opacity-70">Spring 2024 • Section 200</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-xs cursor-pointer">close</span>
+</div>
+</div>
+<!-- Inactive/History -->
+<div class="pt-4 mt-4 border-t border-outline-variant/30">
+<p class="text-[10px] font-bold uppercase tracking-tighter text-on-surface-variant opacity-60 mb-3">Recent Analysis</p>
+<div class="space-y-2 opacity-60">
+<div class="flex items-center gap-2 text-xs font-medium px-2 py-1 hover:bg-surface-container-high rounded cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-sm">history</span>
+<span>ECEN 350 Fall vs Spring</span>
+</div>
+<div class="flex items-center gap-2 text-xs font-medium px-2 py-1 hover:bg-surface-container-high rounded cursor-pointer transition-colors">
+<span class="material-symbols-outlined text-sm">history</span>
+<span>MATH 308 - All Sections</span>
+</div>
+</div>
+</div>
+</div>
+<div class="mt-auto pt-6 border-t border-outline-variant/30 flex items-center justify-between">
+<div class="flex items-center gap-3">
+<img alt="User Profile" class="w-8 h-8 rounded-full border border-outline-variant" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBP9tuOYN_pcP5Wt8JX4EMqKTRFjqi_Bq2CSvTH2QOlTXSIjvekS3kRV8I8MA6choyNYapVceMRf30hdrqkdFZaokVeAWPb-W-Jh5LWOTZBvi81rgcIe5hAq6HQ2jNI44aUrvicu4jIeSiBVHrU-LP5GVPeSR7Zhw9vK15hxoqW42uM1NZLH_9KO0THeQwTWZXb9i8OiR9N2yITmfD9IZAoOdvduPJZG0B0ep1tzbRqhGzkuv6dPxaAI8Cd1Vo7vswGu4-b8d6A4zA"/>
+<div>
+<p class="text-xs font-bold text-on-surface">Class of 2025</p>
+<p class="text-[10px] text-on-surface-variant">Engineering Honors</p>
+</div>
+</div>
+<span class="material-symbols-outlined text-on-surface-variant cursor-pointer hover:text-primary-container">settings</span>
+</div>
+</aside>
+<!-- Main Chat Area -->
+<section class="flex-1 flex flex-col relative bg-background">
+<!-- Chat Header (Fixed within section) -->
+<div class="px-12 py-6 bg-background/95 backdrop-blur-sm z-30 flex items-center justify-between border-b-0">
+<div>
+<h1 class="text-3xl font-headline font-bold text-on-surface tracking-tight">Syllabus Insights</h1>
+<p class="text-sm font-body text-on-surface-variant mt-1">Comparing 2 courses using Neural Curator Engine</p>
+</div>
+<div class="flex gap-2">
+<div class="flex -space-x-2">
+<div class="w-8 h-8 rounded-full bg-surface-container-highest border-2 border-background flex items-center justify-center font-bold text-[10px]">R</div>
+<div class="w-8 h-8 rounded-full bg-primary-container text-surface border-2 border-background flex items-center justify-center font-bold text-[10px]">L</div>
+</div>
+<button class="ml-4 px-4 py-2 bg-surface-container-highest text-on-surface text-xs font-bold rounded-md hover:bg-surface-container-high transition-colors">Export Report</button>
+</div>
+</div>
+<!-- Messages Area -->
+<div class="flex-1 overflow-y-auto px-12 py-8 space-y-12">
+<!-- User Message -->
+<div class="flex flex-col items-end space-y-2">
+<div class="max-w-2xl bg-surface-container-low p-6 rounded-xl rounded-tr-none">
+<p class="text-base text-on-surface leading-relaxed">
+                            Compare the workload and grading distribution between Ritchey's Fall 2023 syllabus and Lupoli's Spring 2024 syllabus for CSCE 411. Which one is better for a heavy semester?
+                        </p>
+</div>
+<span class="text-[10px] font-label font-bold text-on-surface-variant/40 mr-2">SENT 10:42 AM</span>
+</div>
+<!-- AI Response Message -->
+<div class="flex gap-6 max-w-4xl">
+<div class="w-10 h-10 bg-primary-container rounded-lg flex items-center justify-center shrink-0 mt-1">
+<span class="material-symbols-outlined text-surface" style="font-variation-settings: 'FILL' 1;">auto_awesome</span>
+</div>
+<div class="space-y-8">
+<div>
+<h3 class="text-2xl font-headline font-bold text-primary-container mb-4">Quick Take</h3>
+<p class="text-lg font-body text-on-surface-variant leading-relaxed">
+                                Lupoli's Spring 2024 section offers a more <span class="text-primary-container font-bold italic">modular workload</span> with frequent low-stakes assessments, whereas Ritchey focuses on <span class="text-primary-container font-bold italic">three high-impact milestones</span>. If your semester is already heavy, Lupoli's structure provides better recovery windows.
+                            </p>
+</div>
+<!-- Comparison Grid (Bento Style) -->
+<div class="grid grid-cols-2 gap-4">
+<!-- Category: Workload -->
+<div class="p-6 bg-surface-container rounded-xl">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary-container">speed</span>
+<span class="text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant">Workload Velocity</span>
+</div>
+<div class="space-y-4">
+<div>
+<p class="text-xs font-bold text-on-surface mb-1">Ritchey (Fall)</p>
+<div class="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
+<div class="bg-primary-container h-full w-[85%]"></div>
+</div>
+<p class="text-[10px] text-on-surface-variant mt-1">Heavy front-loading (Weeks 1-6)</p>
+</div>
+<div>
+<p class="text-xs font-bold text-on-surface mb-1">Lupoli (Spring)</p>
+<div class="w-full bg-surface-container-highest h-2 rounded-full overflow-hidden">
+<div class="bg-surface-tint h-full w-[60%]"></div>
+</div>
+<p class="text-[10px] text-on-surface-variant mt-1">Consistent bi-weekly cadence</p>
+</div>
+</div>
+</div>
+<!-- Category: Grading -->
+<div class="p-6 bg-surface-container rounded-xl">
+<div class="flex items-center gap-2 mb-4">
+<span class="material-symbols-outlined text-primary-container">analytics</span>
+<span class="text-xs font-label font-bold uppercase tracking-widest text-on-surface-variant">Grading Weight</span>
+</div>
+<ul class="space-y-2">
+<li class="flex justify-between text-xs">
+<span class="text-on-surface-variant">Exams</span>
+<span class="font-bold">60% vs 40%</span>
+</li>
+<li class="flex justify-between text-xs">
+<span class="text-on-surface-variant">Coding Projects</span>
+<span class="font-bold">30% vs 45%</span>
+</li>
+<li class="flex justify-between text-xs">
+<span class="text-on-surface-variant">Participation</span>
+<span class="font-bold">10% vs 15%</span>
+</li>
+</ul>
+</div>
+</div>
+<!-- Detailed Findings -->
+<div class="space-y-6">
+<h4 class="text-xl font-headline font-bold text-on-surface">Key Differences</h4>
+<div class="space-y-4">
+<div class="flex gap-4 items-start">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container mt-2"></span>
+<div class="flex-1">
+<p class="text-sm font-bold text-on-surface">Attendance Policy</p>
+<p class="text-sm text-on-surface-variant leading-relaxed">Ritchey requires physical attendance for 5% of the total grade via random quizzes. Lupoli allows asynchronous participation through online forums.</p>
+</div>
+</div>
+<div class="flex gap-4 items-start">
+<span class="w-1.5 h-1.5 rounded-full bg-primary-container mt-2"></span>
+<div class="flex-1">
+<p class="text-sm font-bold text-on-surface">Late Work</p>
+<p class="text-sm text-on-surface-variant leading-relaxed">Ritchey has a "Strict No-Late" policy. Lupoli uses a "Late Tokens" system allowing up to 3 days total grace period.</p>
+</div>
+</div>
+</div>
+</div>
+<!-- Suggestion Chips -->
+<div class="flex gap-3 pt-4">
+<button class="px-4 py-2 bg-surface-container-highest text-[10px] font-label font-bold uppercase tracking-widest hover:bg-primary-container hover:text-surface transition-all rounded-full border border-outline-variant/30">View Exam Dates</button>
+<button class="px-4 py-2 bg-surface-container-highest text-[10px] font-label font-bold uppercase tracking-widest hover:bg-primary-container hover:text-surface transition-all rounded-full border border-outline-variant/30">Generate Study Plan</button>
+<button class="px-4 py-2 bg-surface-container-highest text-[10px] font-label font-bold uppercase tracking-widest hover:bg-primary-container hover:text-surface transition-all rounded-full border border-outline-variant/30">Compare with Section 503</button>
+</div>
+</div>
+</div>
+<!-- Spacer for composer -->
+<div class="h-24"></div>
+</div>
+<!-- Fixed Composer -->
+<div class="absolute bottom-0 left-0 w-full p-8 bg-gradient-to-t from-background via-background to-transparent z-40">
+<div class="max-w-4xl mx-auto relative group">
+<div class="absolute inset-0 bg-primary-container/5 blur-xl group-focus-within:bg-primary-container/10 transition-all rounded-2xl"></div>
+<div class="relative bg-surface-container-lowest border border-outline-variant/20 rounded-2xl p-2 shadow-sm flex items-end gap-2">
+<button class="p-3 hover:bg-surface-container rounded-xl transition-colors text-on-surface-variant">
+<span class="material-symbols-outlined">add_circle</span>
+</button>
+<textarea class="flex-1 bg-transparent border-0 focus:ring-0 text-on-surface py-3 resize-none font-body text-base" placeholder="Ask follow-up questions about these syllabi..." rows="1"></textarea>
+<button class="bg-primary-container text-surface p-3 rounded-xl shadow-lg hover:scale-105 active:scale-95 transition-all flex items-center justify-center">
+<span class="material-symbols-outlined">send</span>
+</button>
+</div>
+</div>
+<p class="text-center text-[10px] font-label uppercase tracking-widest text-on-surface-variant/50 mt-4">Powered by Academic Curator LLM-v4 • Verified TAMU Data</p>
+</div>
+</section>
+</main>
+<footer class="bg-surface-container-low py-3 px-8 flex justify-between items-center z-50">
+<div class="flex gap-4">
+<span class="text-[10px] font-label uppercase tracking-widest text-on-surface-variant">© 2024 Texas A&amp;M Registrar</span>
+</div>
+<div class="flex gap-6">
+<a class="text-[10px] font-label uppercase tracking-widest text-on-surface-variant hover:text-primary-container" href="#">Privacy</a>
+<a class="text-[10px] font-label uppercase tracking-widest text-on-surface-variant hover:text-primary-container" href="#">Terms</a>
+<a class="text-[10px] font-label uppercase tracking-widest text-on-surface-variant hover:text-primary-container" href="#">Help</a>
+</div>
+</footer>
+</body></html>

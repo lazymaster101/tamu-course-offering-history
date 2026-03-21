@@ -7,83 +7,207 @@
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
-      href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Space+Grotesk:wght@400;500;700&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Newsreader:ital,opsz,wght@0,6..72,400..800;1,6..72,400..800&family=Space+Grotesk:wght@400;500;700&display=swap"
+      rel="stylesheet"
+    />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@400,0..1&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="/styles.css" />
   </head>
   <body data-page="saved">
-    <div class="page-shell">
-      <nav class="utility-bar" aria-label="Primary">
-        <a class="utility-link" href="/">Explore</a>
-        <div class="utility-bar-links">
-          <a class="utility-link is-active" href="/saved.html#cart">
-            Cart
-            <span id="cart-count-badge" class="utility-count">0</span>
+    <div class="app-shell">
+      <aside class="app-sidebar">
+        <a class="brand-lockup" href="/">
+          <span class="brand-mark">The Curator</span>
+          <span class="brand-subtitle">TAMU Course History</span>
+        </a>
+
+        <nav class="sidebar-nav" aria-label="Primary">
+          <a class="sidebar-link" href="/" data-shell-page="explore">
+            <span class="material-symbols-outlined sidebar-link-icon">explore</span>
+            <span class="sidebar-link-label">Explore</span>
           </a>
-          <a class="utility-link" href="/saved.html#favorites">
-            Favorites
-            <span id="favorite-count-badge" class="utility-count">0</span>
+          <a class="sidebar-link" href="/saved.html#plan" data-shell-section="plan">
+            <span class="material-symbols-outlined sidebar-link-icon">shopping_cart</span>
+            <span class="sidebar-link-label">Semester Plan</span>
+            <span class="sidebar-link-count" data-saved-count="plan">0</span>
           </a>
-          <a class="utility-link" href="/compare.html">AI Compare</a>
+          <a class="sidebar-link" href="/saved.html#favorites" data-shell-section="favorites">
+            <span class="material-symbols-outlined sidebar-link-icon">bookmark</span>
+            <span class="sidebar-link-label">Favorites</span>
+            <span class="sidebar-link-count" data-saved-count="favorites">0</span>
+          </a>
+          <a class="sidebar-link" href="/compare.html" data-shell-page="compare">
+            <span class="material-symbols-outlined sidebar-link-icon">compare_arrows</span>
+            <span class="sidebar-link-label">AI Compare</span>
+            <span class="sidebar-link-count" data-shortlist-count>0</span>
+          </a>
+          <a class="sidebar-link" href="/planner.html" data-shell-page="planner">
+            <span class="material-symbols-outlined sidebar-link-icon">hub</span>
+            <span class="sidebar-link-label">Planner</span>
+          </a>
+        </nav>
+
+        <div class="sidebar-profile">
+          <div class="sidebar-avatar">JR</div>
+          <div>
+            <p class="sidebar-profile-name">J. Reveles</p>
+            <p class="sidebar-profile-meta">Computer Science '25</p>
+          </div>
         </div>
-      </nav>
 
-      <header class="hero-card saved-hero">
-        <div class="hero-copy">
-          <p class="eyebrow">Your shortlist</p>
-          <h1>Saved Classes</h1>
-          <p class="lede">
-            Keep likely schedules in your cart, keep long-term references in favorites,
-            and jump straight back into term-by-term syllabus history.
-          </p>
+        <div class="sidebar-footer-links">
+          <a class="sidebar-footer-link" href="/planner.html">
+            <span class="material-symbols-outlined">bolt</span>
+            <span>Plan next semester</span>
+          </a>
+          <a class="sidebar-footer-link" href="/compare.html">
+            <span class="material-symbols-outlined">auto_awesome</span>
+            <span>Compare saved syllabi</span>
+          </a>
         </div>
+      </aside>
 
-        <div class="search-panel saved-overview">
-          <div class="saved-metric">
-            <p class="field-label">Cart</p>
-            <p id="cart-count-summary" class="saved-metric-value">0</p>
+      <div class="app-main">
+        <header class="app-topbar">
+          <nav class="app-topbar-tabs" aria-label="Section tabs">
+            <a class="app-tab" href="/">Home</a>
+            <a class="app-tab" href="/planner.html">Planner</a>
+            <a class="app-tab" href="/compare.html">AI Compare</a>
+          </nav>
+
+          <form class="app-quick-search" action="/" method="get">
+            <span class="material-symbols-outlined app-quick-search-icon">search</span>
+            <input
+              class="app-quick-search-input"
+              type="search"
+              name="q"
+              placeholder="Search 2,400+ archive courses..."
+              autocomplete="off"
+            />
+          </form>
+
+          <div class="app-topbar-actions">
+            <button class="app-icon-button" type="button" aria-label="Notifications">
+              <span class="material-symbols-outlined">notifications</span>
+            </button>
+            <a class="app-profile-link" href="/saved.html#favorites">
+              <span class="material-symbols-outlined">account_circle</span>
+              <span>Profile</span>
+            </a>
           </div>
-          <div class="saved-metric">
-            <p class="field-label">Favorites</p>
-            <p id="favorite-count-summary" class="saved-metric-value">0</p>
-          </div>
-          <p class="search-note">
-            Each saved class opens back into the main explorer with its offering history ready
-            to scan.
-          </p>
+        </header>
+
+        <div class="page-shell page-shell-saved">
+          <header class="saved-page-head">
+            <div class="saved-page-copy">
+              <p class="eyebrow">Your library</p>
+              <h1>Saved classes, curated for quick return.</h1>
+              <p class="lede">
+                Keep course-level semester planning separate from professor-level shortlisting, and
+                keep long-term references in favorites.
+              </p>
+            </div>
+
+            <div class="saved-head-metrics">
+              <article class="saved-metric-card">
+                <p class="field-label">Semester Plan</p>
+                <p class="saved-metric-value" data-saved-count="plan">0</p>
+                <p class="saved-metric-note">Course-level next semester list</p>
+              </article>
+              <article class="saved-metric-card">
+                <p class="field-label">Shortlist</p>
+                <p class="saved-metric-value" data-shortlist-count>0</p>
+                <p class="saved-metric-note">Professor and syllabus candidates</p>
+              </article>
+              <article class="saved-metric-card">
+                <p class="field-label">Favorites</p>
+                <p class="saved-metric-value" data-saved-count="favorites">0</p>
+                <p class="saved-metric-note">Long-term archive</p>
+              </article>
+            </div>
+          </header>
+
+          <main class="saved-layout saved-layout-editorial">
+            <div class="saved-board">
+              <div class="saved-jump-links">
+                <a class="saved-jump-link" href="#plan">Semester plan</a>
+                <a class="saved-jump-link" href="#shortlist">Section shortlist</a>
+                <a class="saved-jump-link" href="#favorites">Favorites archive</a>
+              </div>
+
+              <section id="plan" class="saved-section-card saved-section-emphasis">
+                <div class="section-heading">
+                  <p class="section-kicker">Semester plan</p>
+                  <h2>Your current course list</h2>
+                  <p class="history-summary">
+                    Add courses here when you know you need them next term, before picking a
+                    specific professor.
+                  </p>
+                </div>
+                <div id="plan-state" class="empty-state">
+                  Your semester plan is empty. Add courses from Explore or Planner when you know
+                  they belong in the next semester mix.
+                </div>
+                <div id="plan-list" class="saved-course-list" hidden></div>
+              </section>
+
+              <section id="shortlist" class="saved-section-card">
+                <div class="section-heading">
+                  <p class="section-kicker">Section shortlist</p>
+                  <h2>Professor candidates and syllabi</h2>
+                  <p class="history-summary">
+                    Save real instructor groups from offering history here, then compare them with
+                    AI when you are ready to choose a professor.
+                  </p>
+                </div>
+                <div id="shortlist-state" class="empty-state">
+                  Nothing is shortlisted yet. From Explore, use “Shortlist professor” on a grouped
+                  syllabus card.
+                </div>
+                <div id="shortlist-list" class="saved-course-list" hidden></div>
+              </section>
+
+              <section id="favorites" class="saved-section-card">
+                <div class="section-heading">
+                  <p class="section-kicker">Favorites</p>
+                  <h2>Long-term references</h2>
+                  <p class="history-summary">
+                    Favorite the classes you revisit often so the archive stays one click away.
+                  </p>
+                </div>
+                <div id="favorites-state" class="empty-state">
+                  No favorites yet. Mark classes from Explore so you can pull them back up fast.
+                </div>
+                <div id="favorites-list" class="saved-course-list" hidden></div>
+              </section>
+            </div>
+
+            <aside class="saved-rail">
+              <article class="editorial-card">
+                <p class="section-kicker">Curator AI Assist</p>
+                <h3>Compare the shortlist, not the whole semester plan.</h3>
+                <p>
+                  Once you know which courses matter for next year, shortlist real instructor groups
+                  from offering history and use AI Compare only on those actual syllabus options.
+                </p>
+                <a class="editorial-link" href="/compare.html">Run a comparison</a>
+              </article>
+
+              <article class="editorial-card editorial-card-soft">
+                <p class="section-kicker">Archive habit</p>
+                <ol class="editorial-list">
+                  <li>Put likely courses into Semester Plan.</li>
+                  <li>Shortlist professors from real term cards.</li>
+                  <li>Use Favorites for recurring long-term references.</li>
+                </ol>
+              </article>
+            </aside>
+          </main>
         </div>
-      </header>
-
-      <main class="saved-layout">
-        <section id="cart" class="saved-section-card">
-          <div class="section-heading">
-            <p class="section-kicker">Saved Cart</p>
-            <h2>Your current picks</h2>
-            <p class="history-summary">
-              Use the cart for classes you are actively comparing this semester.
-            </p>
-          </div>
-          <div id="cart-state" class="empty-state">
-            Your cart is empty. Add classes from the explorer to build a quick syllabus shortlist.
-          </div>
-          <div id="cart-list" class="saved-course-list" hidden></div>
-        </section>
-
-        <section id="favorites" class="saved-section-card">
-          <div class="section-heading">
-            <p class="section-kicker">Favorites</p>
-            <h2>Long-term references</h2>
-            <p class="history-summary">
-              Favorites are for classes you revisit often and want one-click access to later.
-            </p>
-          </div>
-          <div id="favorites-state" class="empty-state">
-            No favorites yet. Mark classes from the explorer so you can pull them back up fast.
-          </div>
-          <div id="favorites-list" class="saved-course-list" hidden></div>
-        </section>
-      </main>
+      </div>
     </div>
 
     <template id="saved-course-template">
@@ -100,6 +224,24 @@
           <a class="saved-course-link" target="_self">Open offerings</a>
           <button class="result-action-button saved-toggle-cart" type="button"></button>
           <button class="result-action-button saved-toggle-favorite" type="button"></button>
+        </div>
+      </article>
+    </template>
+
+    <template id="saved-shortlist-template">
+      <article class="saved-course-card">
+        <div class="saved-course-header">
+          <div class="saved-course-primary">
+            <p class="result-code saved-shortlist-code"></p>
+            <h3 class="saved-course-title saved-shortlist-title"></h3>
+          </div>
+          <div class="saved-course-tags"></div>
+        </div>
+        <p class="saved-course-meta saved-shortlist-meta"></p>
+        <div class="saved-course-actions">
+          <a class="saved-course-link saved-shortlist-open" target="_blank" rel="noreferrer">Open syllabus</a>
+          <a class="saved-course-link saved-shortlist-compare" target="_self">Open compare</a>
+          <button class="result-action-button saved-shortlist-remove" type="button">Remove</button>
         </div>
       </article>
     </template>

@@ -4,16 +4,25 @@ import {
   getSavedCourses,
   hasSavedCourse,
   removeCourse,
-  saveCourse
+  saveCourse,
+  subscribeToSavedCourses
 } from "./saved-courses.js";
+import {
+  getCompareSources,
+  removeCompareSource,
+  subscribeToCompareSources
+} from "./compare-sources.js";
 import { startSavedCourseBadgeSync } from "./page-shell.js";
 
 const elements = {
-  cartState: document.querySelector("#cart-state"),
-  cartList: document.querySelector("#cart-list"),
+  planState: document.querySelector("#plan-state"),
+  planList: document.querySelector("#plan-list"),
+  shortlistState: document.querySelector("#shortlist-state"),
+  shortlistList: document.querySelector("#shortlist-list"),
   favoritesState: document.querySelector("#favorites-state"),
   favoritesList: document.querySelector("#favorites-list"),
-  template: document.querySelector("#saved-course-template")
+  courseTemplate: document.querySelector("#saved-course-template"),
+  shortlistTemplate: document.querySelector("#saved-shortlist-template")
 };
 
 function setActionButtonState(button, isActive, activeLabel, inactiveLabel) {
@@ -35,6 +44,25 @@ function formatCourseMeta(course) {
   return parts.join(" • ");
 }
 
+function formatShortlistCode(source) {
+  if (source.subject && source.courseNumber) {
+    return `${source.subject} ${source.courseNumber}`;
+  }
+
+  return "Shortlisted syllabus";
+}
+
+function formatShortlistMeta(source) {
+  return [
+    source.termDescription,
+    source.sectionsLabel,
+    source.instructorLabel,
+    source.honorsLabel
+  ]
+    .filter(Boolean)
+    .join(" • ");
+}
+
 function createTag(label, tone) {
   const tag = document.createElement("span");
   tag.className = `syllabus-badge${tone ? ` is-${tone}` : ""}`;
@@ -43,28 +71,29 @@ function createTag(label, tone) {
 }
 
 function createSavedCourseCard(course, primaryCollection) {
-  const fragment = elements.template.content.cloneNode(true);
+  const fragment = elements.courseTemplate.content.cloneNode(true);
   const tags = fragment.querySelector(".saved-course-tags");
   const titleNode = fragment.querySelector(".saved-course-title");
   const codeNode = fragment.querySelector(".saved-course-code");
   const metaNode = fragment.querySelector(".saved-course-meta");
   const openLink = fragment.querySelector(".saved-course-link");
-  const toggleCartButton = fragment.querySelector(".saved-toggle-cart");
+  const togglePlanButton = fragment.querySelector(".saved-toggle-cart");
   const toggleFavoriteButton = fragment.querySelector(".saved-toggle-favorite");
 
   codeNode.textContent = formatSavedCourseCode(course);
   titleNode.textContent = course.title;
   metaNode.textContent = formatCourseMeta(course);
   openLink.href = buildExplorerUrl(course);
+  openLink.textContent = "Open offerings";
 
-  tags.append(createTag(primaryCollection === "cart" ? "Cart" : "Favorite", "muted"));
+  tags.append(createTag(primaryCollection === "plan" ? "Semester Plan" : "Favorite", "muted"));
   tags.append(createTag(course.campusLabel, "standard"));
 
   setActionButtonState(
-    toggleCartButton,
-    hasSavedCourse("cart", course),
-    "Remove from cart",
-    "Add to cart"
+    togglePlanButton,
+    hasSavedCourse("plan", course),
+    "Remove from semester plan",
+    "Add to semester plan"
   );
   setActionButtonState(
     toggleFavoriteButton,
@@ -73,13 +102,13 @@ function createSavedCourseCard(course, primaryCollection) {
     "Add favorite"
   );
 
-  toggleCartButton.addEventListener("click", () => {
-    if (hasSavedCourse("cart", course)) {
-      removeCourse("cart", course);
+  togglePlanButton.addEventListener("click", () => {
+    if (hasSavedCourse("plan", course)) {
+      removeCourse("plan", course);
     } else {
-      saveCourse("cart", course);
+      saveCourse("plan", course);
     }
-    renderSavedCourses();
+    renderSavedCollections();
   });
 
   toggleFavoriteButton.addEventListener("click", () => {
@@ -88,13 +117,42 @@ function createSavedCourseCard(course, primaryCollection) {
     } else {
       saveCourse("favorites", course);
     }
-    renderSavedCourses();
+    renderSavedCollections();
   });
 
   return fragment;
 }
 
-function renderCollection(collectionName, stateNode, listNode) {
+function createShortlistCard(source) {
+  const fragment = elements.shortlistTemplate.content.cloneNode(true);
+  const tags = fragment.querySelector(".saved-course-tags");
+  const codeNode = fragment.querySelector(".saved-shortlist-code");
+  const titleNode = fragment.querySelector(".saved-shortlist-title");
+  const metaNode = fragment.querySelector(".saved-shortlist-meta");
+  const openLink = fragment.querySelector(".saved-shortlist-open");
+  const compareLink = fragment.querySelector(".saved-shortlist-compare");
+  const removeButton = fragment.querySelector(".saved-shortlist-remove");
+
+  codeNode.textContent = formatShortlistCode(source);
+  titleNode.textContent = source.label;
+  metaNode.textContent = formatShortlistMeta(source);
+  openLink.href = source.url || "/compare.html";
+  compareLink.href = "/compare.html";
+
+  tags.append(createTag("Shortlist", "muted"));
+  if (source.honorsLabel) {
+    tags.append(createTag(source.honorsLabel, source.honorsLabel === "Honors" ? "honors" : "standard"));
+  }
+
+  removeButton.addEventListener("click", () => {
+    removeCompareSource(source.id);
+    renderSavedCollections();
+  });
+
+  return fragment;
+}
+
+function renderCourseCollection(collectionName, stateNode, listNode) {
   const courses = getSavedCourses(collectionName);
   listNode.innerHTML = "";
 
@@ -111,10 +169,30 @@ function renderCollection(collectionName, stateNode, listNode) {
   });
 }
 
-function renderSavedCourses() {
-  renderCollection("cart", elements.cartState, elements.cartList);
-  renderCollection("favorites", elements.favoritesState, elements.favoritesList);
+function renderShortlistCollection() {
+  const sources = getCompareSources();
+  elements.shortlistList.innerHTML = "";
+
+  if (!sources.length) {
+    elements.shortlistState.hidden = false;
+    elements.shortlistList.hidden = true;
+    return;
+  }
+
+  elements.shortlistState.hidden = true;
+  elements.shortlistList.hidden = false;
+  sources.forEach((source) => {
+    elements.shortlistList.append(createShortlistCard(source));
+  });
+}
+
+function renderSavedCollections() {
+  renderCourseCollection("plan", elements.planState, elements.planList);
+  renderShortlistCollection();
+  renderCourseCollection("favorites", elements.favoritesState, elements.favoritesList);
 }
 
 startSavedCourseBadgeSync();
-renderSavedCourses();
+renderSavedCollections();
+subscribeToSavedCourses(renderSavedCollections);
+subscribeToCompareSources(renderSavedCollections);

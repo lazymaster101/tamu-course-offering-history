@@ -1,33 +1,28 @@
 import { getDegreePlan, listDegreePlans } from "../lib/degree-planner-data.mjs";
 
+function jsonResponse(statusCode, payload) {
+  return new Response(JSON.stringify(payload), {
+    status: statusCode,
+    headers: {
+      "cache-control": "no-store",
+      "content-type": "application/json; charset=utf-8"
+    }
+  });
+}
+
 export default async function handler(request) {
   const url = new URL(request.url);
   const planId = url.searchParams.get("plan")?.trim() || "bs-cs-2025";
 
   try {
-    return Response.json(
-      {
-        plans: listDegreePlans(),
-        plan: getDegreePlan(planId)
-      },
-      {
-        status: 200,
-        headers: {
-          "cache-control": "no-store"
-        }
-      }
-    );
+    return jsonResponse(200, {
+      plans: listDegreePlans(),
+      plan: getDegreePlan(planId)
+    });
   } catch (error) {
-    return Response.json(
-      {
-        error: error.message || "Unknown degree-plan error."
-      },
-      {
-        status: error.statusCode ?? 500,
-        headers: {
-          "cache-control": "no-store"
-        }
-      }
-    );
+    console.error("[degree-plan]", error);
+    return jsonResponse(error.statusCode ?? 500, {
+      error: error.message || "Unknown degree-plan error."
+    });
   }
 }

@@ -209,6 +209,28 @@ function setBusy(button, isBusy, idleLabel, busyLabel) {
   button.textContent = isBusy ? busyLabel : idleLabel;
 }
 
+async function readJsonResponse(response, fallbackMessage) {
+  const rawText = await response.text();
+
+  if (!rawText.trim()) {
+    if (!response.ok) {
+      throw new Error(fallbackMessage || "Request failed.");
+    }
+
+    return {};
+  }
+
+  try {
+    return JSON.parse(rawText);
+  } catch {
+    if (!response.ok) {
+      throw new Error(rawText.trim() || fallbackMessage || "Request failed.");
+    }
+
+    throw new Error("Received a non-JSON response from the server.");
+  }
+}
+
 function createBadge(text, extraClass = "") {
   const badge = document.createElement("span");
   badge.className = `planner-mini-badge ${extraClass}`.trim();
@@ -2341,7 +2363,10 @@ function handleGraphWheel(event) {
 
 async function loadDegreePlan(planId = "bs-cs-2025") {
   const response = await fetch(`/api/degree-plan?plan=${encodeURIComponent(planId)}`);
-  const payload = await response.json();
+  const payload = await readJsonResponse(
+    response,
+    "Could not load the degree-plan data from the server."
+  );
 
   if (!response.ok) {
     throw new Error(payload.error || "Could not load degree plan.");
@@ -2406,7 +2431,7 @@ async function sendPlannerQuestion(questionText) {
         previousResponseId: state.previousResponseId
       })
     });
-    const result = await response.json();
+    const result = await readJsonResponse(response, "Planner chat failed.");
 
     if (!response.ok) {
       throw new Error(result.error || "Planner chat failed.");

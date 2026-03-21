@@ -4562,3 +4562,54 @@ body[data-page="planner"] .planner-suggestion-meta {
     max-height: calc(100vh - 6.5rem);
   }
 }
+
+/* Final planner deploy + readability overrides */
+
+body[data-page="planner"] .planner-page-head {
+  margin-bottom: 0.65rem;
+  gap: 0.65rem;
+}
+
+body[data-page="planner"] .planner-page-head h1 {
+  font-size: clamp(1.95rem, 2.55vw, 2.85rem);
+  line-height: 0.98;
+}
+
+body[data-page="planner"] .planner-page-head .lede,
+body[data-page="planner"] .planner-page-note p {
+  font-size: 0.88rem;
+  line-height: 1.42;
+}
+
+body[data-page="planner"] .planner-page-copy,
+body[data-page="planner"] .planner-page-note,
+body[data-page="planner"] .planner-transcript-panel .section-heading,
+body[data-page="planner"] .planner-main-panel .section-heading {
+  gap: 0.35rem;
+}
+
+body[data-page="planner"] .planner-transcript-panel .section-heading h2,
+body[data-page="planner"] .planner-main-panel .section-heading h2,
+body[data-page="planner"] .planner-assistant-head h2 {
+  font-size: 1.65rem;
+  line-height: 1.02;
+}
+
+body[data-page="planner"] .planner-transcript-panel .history-summary,
+body[data-page="planner"] .planner-main-panel .history-summary,
+body[data-page="planner"] .planner-assistant-head .history-summary {
+  font-size: 0.85rem;
+  line-height: 1.4;
+}
+
+body[data-page="planner"] .planner-main-panel {
+  gap: 0.5rem;
+}
+
+body[data-page="planner"] .planner-summary-grid {
+  gap: 0.55rem;
+}
+
+body[data-page="planner"] .planner-graph-shell {
+  margin-top: 0;
+}

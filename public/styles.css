@@ -769,6 +769,10 @@ button {
   width: min(84%, 760px);
 }
 
+.compare-message.is-thinking .compare-message-card {
+  width: fit-content;
+}
+
 .compare-user-card {
   padding: 18px 20px;
   background:
@@ -781,6 +785,13 @@ button {
 .compare-assistant-response {
   display: grid;
   gap: 14px;
+}
+
+.compare-thinking-card {
+  padding: 0;
+  border: 0;
+  background: transparent;
+  box-shadow: none;
 }
 
 .compare-message-intro {

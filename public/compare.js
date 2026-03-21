@@ -9,6 +9,8 @@ import {
 
 const MAX_CLIENT_PDF_BYTES = 2 * 1024 * 1024;
 const MAX_TOTAL_CLIENT_PDF_BYTES = 3 * 1024 * 1024;
+const DEFAULT_INITIAL_COMPARE_PROMPT =
+  "Compare these syllabi for workload, grading breakdown, exams, projects, attendance, late work, and which section seems easiest to manage for a student with a heavy semester.";
 const DEFAULT_COMPARE_HELPER =
   "The first answer can take a bit longer because PDFs need to be processed.";
 const DEFAULT_FOLLOWUP_HELPER =
@@ -27,7 +29,8 @@ const state = {
   previousResponseId: null,
   lastDocuments: [],
   requestInFlight: false,
-  messages: []
+  messages: [],
+  showTyping: false
 };
 
 const elements = {
@@ -43,7 +46,6 @@ const elements = {
   queuedSourceTemplate: document.querySelector("#queued-source-template"),
   resultState: document.querySelector("#compare-result-state"),
   thread: document.querySelector("#compare-thread"),
-  typing: document.querySelector("#compare-typing"),
   statusText: document.querySelector("#compare-status-text"),
   messageTemplate: document.querySelector("#compare-message-template"),
   followupForm: document.querySelector("#compare-followup-form"),
@@ -55,6 +57,7 @@ const elements = {
 function logCompareUi(event, details = {}) {
   const snapshot = {
     messageCount: state.messages.length,
+    showTyping: state.showTyping,
     previousResponseId: state.previousResponseId,
     resultStateHidden: elements.resultState?.hidden ?? null,
     threadHidden: elements.thread?.hidden ?? null,
@@ -90,20 +93,21 @@ function showTranscript() {
 }
 
 function setTyping(isVisible, message) {
-  elements.typing.hidden = !isVisible;
+  state.showTyping = isVisible;
 
   if (!elements.statusText) {
+    renderConversation();
     return;
   }
 
   if (isVisible) {
     elements.statusText.textContent = message || "Reading syllabi and building the comparison.";
-    return;
+  } else {
+    elements.statusText.textContent = state.previousResponseId
+      ? "Comparison context is loaded and ready for follow-up questions."
+      : "Ready for a new syllabus comparison.";
   }
-
-  elements.statusText.textContent = state.previousResponseId
-    ? "Comparison context is loaded and ready for follow-up questions."
-    : "Ready for a new syllabus comparison.";
+  renderConversation();
 }
 
 function scrollThreadToBottom() {
@@ -388,6 +392,39 @@ function renderMessage(message) {
   elements.thread.append(fragment);
 }
 
+function renderTypingMessage() {
+  const message = document.createElement("article");
+  message.className = "compare-message is-assistant is-thinking";
+
+  const meta = document.createElement("div");
+  meta.className = "compare-message-meta";
+  const role = document.createElement("span");
+  role.className = "compare-message-role";
+  role.textContent = "Compare AI";
+  const badge = document.createElement("span");
+  badge.className = "compare-message-badge";
+  badge.textContent = "Thinking";
+  meta.append(role, badge);
+
+  const bubble = document.createElement("div");
+  bubble.className = "compare-message-card compare-thinking-card";
+
+  const dots = document.createElement("div");
+  dots.className = "compare-typing";
+  dots.setAttribute("aria-label", "AI is thinking");
+  dots.setAttribute("aria-live", "polite");
+
+  for (let index = 0; index < 3; index += 1) {
+    const dot = document.createElement("span");
+    dot.className = "compare-typing-dot";
+    dots.append(dot);
+  }
+
+  bubble.append(dots);
+  message.append(meta, bubble);
+  elements.thread.append(message);
+}
+
 function renderConversation() {
   elements.thread.innerHTML = "";
   logCompareUi("render-start");
@@ -399,6 +436,9 @@ function renderConversation() {
 
   showTranscript();
   state.messages.forEach(renderMessage);
+  if (state.showTyping) {
+    renderTypingMessage();
+  }
   logCompareUi("render-finish", { renderedMessages: elements.thread.children.length });
   scrollThreadToBottom();
 }
@@ -590,6 +630,7 @@ function resetConversationState() {
   state.previousResponseId = null;
   state.lastDocuments = [];
   state.messages = [];
+  state.showTyping = false;
   logCompareUi("reset-conversation");
   elements.followupForm.hidden = true;
   elements.followupQuestion.value = "";
@@ -613,11 +654,13 @@ async function handleCompareSubmit(event) {
 
     const items = await buildCompareItems();
     const prompt = elements.compareQuestion.value.trim();
+    const displayPrompt = prompt || DEFAULT_INITIAL_COMPARE_PROMPT;
+    elements.compareQuestion.value = "";
 
     addMessage({
       role: "user",
       badge: "Initial compare",
-      content: prompt,
+      content: displayPrompt,
       meta: `${items.length} syllabus sources queued for this comparison.`
     });
     setTyping(true, "Reading syllabi and building the comparison.");
@@ -634,6 +677,7 @@ async function handleCompareSubmit(event) {
 
     state.previousResponseId = payload.responseId ?? null;
     state.lastDocuments = payload.documents ?? [];
+    setTyping(false);
 
     addMessage({
       role: "assistant",
@@ -651,6 +695,7 @@ async function handleCompareSubmit(event) {
       `Compared ${items.length} syllabus sources with ${payload.model ?? "the AI model"}.`
     );
   } catch (error) {
+    setTyping(false);
     logCompareUi("compare-error", { errorMessage: error.message });
     addMessage({
       role: "assistant",
@@ -659,7 +704,6 @@ async function handleCompareSubmit(event) {
     });
     setHelper(elements.compareState, error.message, true);
   } finally {
-    setTyping(false);
     state.requestInFlight = false;
     setBusy(elements.compareSubmit, false, "Compare syllabi", "Comparing...");
   }
@@ -688,6 +732,7 @@ async function handleFollowupSubmit(event) {
     state.requestInFlight = true;
     setBusy(elements.followupSubmit, true, "Ask follow-up", "Asking...");
     setHelper(elements.followupState, "Running follow-up...");
+    elements.followupQuestion.value = "";
 
     addMessage({
       role: "user",
@@ -706,6 +751,7 @@ async function handleFollowupSubmit(event) {
     });
 
     state.previousResponseId = payload.responseId ?? state.previousResponseId;
+    setTyping(false);
 
     addMessage({
       role: "assistant",
@@ -714,9 +760,9 @@ async function handleFollowupSubmit(event) {
       documents: state.lastDocuments
     });
 
-    elements.followupQuestion.value = "";
     setHelper(elements.followupState, "Follow-up complete.");
   } catch (error) {
+    setTyping(false);
     logCompareUi("followup-error", { errorMessage: error.message });
     addMessage({
       role: "assistant",
@@ -725,14 +771,24 @@ async function handleFollowupSubmit(event) {
     });
     setHelper(elements.followupState, error.message, true);
   } finally {
-    setTyping(false);
     state.requestInFlight = false;
     setBusy(elements.followupSubmit, false, "Ask follow-up", "Asking...");
   }
 }
 
+function handleEnterToSubmit(event) {
+  if (event.key !== "Enter" || event.shiftKey || event.isComposing) {
+    return;
+  }
+
+  event.preventDefault();
+  event.currentTarget.form?.requestSubmit();
+}
+
 elements.compareForm.addEventListener("submit", handleCompareSubmit);
 elements.followupForm.addEventListener("submit", handleFollowupSubmit);
+elements.compareQuestion.addEventListener("keydown", handleEnterToSubmit);
+elements.followupQuestion.addEventListener("keydown", handleEnterToSubmit);
 elements.clearQueuedSources.addEventListener("click", () => {
   clearCompareSources();
 });

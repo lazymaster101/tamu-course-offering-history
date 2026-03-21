@@ -30,8 +30,17 @@
       </nav>
 
       <header class="hero-card compare-hero">
-        <div class="hero-copy">
-          <p class="eyebrow">Main product feature</p>
+        <div class="hero-copy compare-hero-copy">
+          <div class="compare-hero-topline">
+            <img
+              class="compare-logo compare-hero-logo"
+              src="/compare-logo.svg"
+              alt="Syllabus Signal logo"
+              width="56"
+              height="56"
+            />
+            <p class="eyebrow">Main product feature</p>
+          </div>
           <h1>AI Syllabus Compare</h1>
           <p class="lede">
             Compare 2-5 syllabi in one pass, then ask follow-up questions about grading, workload,
@@ -56,7 +65,7 @@
       </header>
 
       <main class="compare-layout">
-        <section class="saved-section-card compare-panel">
+        <section class="saved-section-card compare-panel compare-sources-panel">
           <div class="section-heading">
             <p class="section-kicker">Sources</p>
             <h2>Build comparison set</h2>
@@ -122,7 +131,7 @@
           </form>
         </section>
 
-        <section class="saved-section-card compare-panel compare-result-panel">
+        <section class="saved-section-card compare-panel compare-result-panel compare-chat-panel">
           <div class="section-heading">
             <p class="section-kicker">Conversation</p>
             <h2>AI compare chat</h2>
@@ -132,17 +141,32 @@
             </p>
           </div>
 
+          <div class="compare-chat-status" aria-live="polite">
+            <img
+              class="compare-logo compare-status-logo"
+              src="/compare-logo.svg"
+              alt="Syllabus Signal logo"
+              width="52"
+              height="52"
+            />
+            <div class="compare-status-copy">
+              <p class="compare-status-label">Syllabus Signal</p>
+              <p id="compare-status-text" class="compare-status-text">
+                Ready for a new syllabus comparison.
+              </p>
+            </div>
+            <div id="compare-typing" class="compare-typing" hidden>
+              <span class="compare-typing-dot"></span>
+              <span class="compare-typing-dot"></span>
+              <span class="compare-typing-dot"></span>
+            </div>
+          </div>
+
           <div id="compare-result-state" class="empty-state compare-thread-state">
             Add at least two syllabus sources, then run a comparison.
           </div>
 
           <div id="compare-thread" class="compare-thread" hidden></div>
-
-          <div id="compare-typing" class="compare-typing" hidden>
-            <span class="compare-typing-dot"></span>
-            <span class="compare-typing-dot"></span>
-            <span class="compare-typing-dot"></span>
-          </div>
 
           <form id="compare-followup-form" class="compare-followup-form compare-chat-composer" hidden>
             <div class="compare-composer-input">

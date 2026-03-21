@@ -30,6 +30,11 @@ body {
   margin: 28px auto 44px;
 }
 
+body[data-page="compare"] .page-shell {
+  width: min(1500px, calc(100% - 24px));
+  margin: 18px auto 28px;
+}
+
 .utility-bar {
   display: flex;
   flex-wrap: wrap;
@@ -491,10 +496,10 @@ button {
 
 .compare-layout {
   display: grid;
-  gap: 22px;
-  grid-template-columns: minmax(320px, 0.95fr) minmax(0, 1.05fr);
-  margin-top: 22px;
-  align-items: start;
+  gap: 18px;
+  grid-template-columns: minmax(300px, 350px) minmax(0, 1.68fr);
+  margin-top: 18px;
+  align-items: stretch;
 }
 
 .saved-section-card {
@@ -579,7 +584,19 @@ button {
 
 .compare-panel {
   display: grid;
-  gap: 18px;
+  gap: 16px;
+}
+
+.compare-sources-panel {
+  position: sticky;
+  top: 18px;
+  align-self: start;
+  max-height: calc(100vh - 36px);
+  overflow-y: auto;
+}
+
+.compare-chat-panel {
+  min-height: calc(100vh - 170px);
 }
 
 .compare-source-toolbar,
@@ -608,8 +625,8 @@ button {
 }
 
 .compare-result-panel {
-  grid-template-rows: auto auto minmax(0, 1fr) auto auto;
-  min-height: 900px;
+  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
+  min-height: calc(100vh - 170px);
 }
 
 .compare-submit-button {
@@ -665,11 +682,11 @@ button {
 
 .compare-thread {
   display: grid;
-  gap: 20px;
+  gap: 16px;
   align-content: start;
   min-height: 0;
   overflow-y: auto;
-  padding-right: 6px;
+  padding-right: 4px;
   scrollbar-gutter: stable;
 }
 
@@ -716,8 +733,12 @@ button {
 }
 
 .compare-message-card {
-  width: min(100%, 860px);
+  width: 100%;
   border-radius: 24px;
+}
+
+.compare-message.is-user .compare-message-card {
+  width: min(84%, 760px);
 }
 
 .compare-user-card {
@@ -862,6 +883,10 @@ button {
   border: 1px solid rgba(80, 0, 0, 0.1);
 }
 
+.compare-typing[hidden] {
+  display: none;
+}
+
 .compare-typing-dot {
   width: 9px;
   height: 9px;
@@ -881,7 +906,7 @@ button {
 .compare-chat-composer {
   grid-template-columns: minmax(0, 1fr);
   gap: 14px;
-  padding-top: 8px;
+  padding-top: 12px;
   border-top: 1px solid rgba(80, 0, 0, 0.08);
 }
 
@@ -892,7 +917,7 @@ button {
 }
 
 .compare-composer-input textarea {
-  min-height: 120px;
+  min-height: 96px;
 }
 
 .compare-composer-footer {
@@ -909,6 +934,131 @@ button {
 
 .compare-composer-footer .compare-submit-button {
   flex: 0 0 auto;
+}
+
+.compare-logo {
+  display: block;
+  flex: 0 0 auto;
+}
+
+.compare-hero {
+  gap: 0;
+  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 400px);
+}
+
+.compare-hero-copy {
+  padding: 26px 30px 24px;
+}
+
+.compare-hero-topline {
+  display: inline-flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 10px;
+}
+
+.compare-hero-logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 18px;
+  box-shadow: 0 16px 30px rgba(20, 5, 8, 0.22);
+}
+
+.compare-hero .eyebrow {
+  margin: 0;
+}
+
+.compare-hero h1 {
+  max-width: none;
+  font-size: clamp(2.4rem, 4.3vw, 4.4rem);
+}
+
+.compare-hero .lede {
+  max-width: 56ch;
+  margin-top: 14px;
+  font-size: 0.98rem;
+}
+
+.compare-overview {
+  display: grid;
+  align-content: center;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  padding: 22px 24px;
+}
+
+.compare-overview .saved-metric {
+  padding: 14px 16px;
+}
+
+.compare-overview .saved-metric-value {
+  font-size: clamp(1.2rem, 2.2vw, 1.7rem);
+}
+
+.compare-overview .search-note {
+  grid-column: 1 / -1;
+  margin: 2px 0 0;
+  font-size: 0.88rem;
+}
+
+.compare-chat-panel .section-heading {
+  margin-bottom: 4px;
+}
+
+.compare-chat-panel .section-heading h2,
+.compare-sources-panel .section-heading h2 {
+  font-size: clamp(1.7rem, 3vw, 2.2rem);
+}
+
+.compare-chat-panel .history-summary,
+.compare-sources-panel .history-summary {
+  margin-top: 10px;
+  max-width: none;
+}
+
+.compare-chat-status {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border-radius: 20px;
+  border: 1px solid rgba(80, 0, 0, 0.09);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(251, 241, 230, 0.72)),
+    rgba(255, 255, 255, 0.8);
+}
+
+.compare-status-logo {
+  width: 52px;
+  height: 52px;
+  border-radius: 16px;
+  box-shadow: 0 10px 24px rgba(80, 0, 0, 0.12);
+}
+
+.compare-status-copy {
+  min-width: 0;
+  display: grid;
+  gap: 4px;
+}
+
+.compare-status-label {
+  margin: 0;
+  color: var(--accent);
+  font-size: 0.82rem;
+  font-weight: 700;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.compare-status-text {
+  margin: 0;
+  color: var(--ink);
+  font-size: 0.98rem;
+  line-height: 1.5;
+}
+
+.compare-chat-status .compare-typing {
+  margin-left: auto;
 }
 
 .syllabus-group-card {
@@ -1024,6 +1174,17 @@ button {
     max-height: none;
   }
 
+  .compare-sources-panel {
+    position: static;
+    max-height: none;
+    overflow: visible;
+  }
+
+  .compare-chat-panel,
+  .compare-result-panel {
+    min-height: auto;
+  }
+
   .results-list {
     overflow: visible;
     padding-right: 0;
@@ -1032,12 +1193,21 @@ button {
   .compare-composer-footer {
     align-items: stretch;
   }
+
+  .compare-message.is-user .compare-message-card {
+    width: 100%;
+  }
 }
 
 @media (max-width: 640px) {
   .page-shell {
     width: min(100% - 20px, 1240px);
     margin-top: 14px;
+  }
+
+  body[data-page="compare"] .page-shell {
+    width: min(100% - 18px, 1500px);
+    margin-top: 12px;
   }
 
   .utility-bar {
@@ -1063,6 +1233,23 @@ button {
 
   .compare-message-card {
     width: 100%;
+  }
+
+  .compare-hero-topline,
+  .compare-chat-status {
+    align-items: flex-start;
+  }
+
+  .compare-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .compare-chat-status {
+    flex-wrap: wrap;
+  }
+
+  .compare-chat-status .compare-typing {
+    margin-left: 0;
   }
 
   .hero-copy h1 {

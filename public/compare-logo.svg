@@ -1,0 +1,27 @@
+<svg width="96" height="96" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="compare-logo-bg" x1="14" y1="12" x2="84" y2="86" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#671111"/>
+      <stop offset="1" stop-color="#8D2E21"/>
+    </linearGradient>
+    <linearGradient id="compare-logo-glow" x1="28" y1="24" x2="68" y2="72" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F4D487"/>
+      <stop offset="1" stop-color="#F0BE4F"/>
+    </linearGradient>
+  </defs>
+  <rect x="10" y="10" width="76" height="76" rx="24" fill="url(#compare-logo-bg)"/>
+  <path
+    d="M30 28.5C30 25.4624 32.4624 23 35.5 23H52.5C58.299 23 63 27.701 63 33.5V39.5C63 45.299 58.299 50 52.5 50H43L34.6 57.4C33.3373 58.5127 31.35 57.6161 31.35 55.9348V50.9C30.5459 50.1828 30 49.1408 30 47.97V28.5Z"
+    fill="url(#compare-logo-glow)"
+  />
+  <path
+    d="M38 38C38 36.8954 38.8954 36 40 36H66C67.1046 36 68 36.8954 68 38V55C68 56.1046 67.1046 57 66 57H57.4L48.9 64.4C47.6343 65.5023 45.65 64.6045 45.65 62.9259V57H40C38.8954 57 38 56.1046 38 55V38Z"
+    fill="#FFF9F3"
+    fill-opacity="0.97"
+  />
+  <rect x="36" y="34" width="10" height="4.5" rx="2.25" fill="#671111"/>
+  <rect x="49.5" y="34" width="10" height="4.5" rx="2.25" fill="#671111"/>
+  <rect x="56" y="42" width="6" height="4.5" rx="2.25" fill="#CDA556"/>
+  <rect x="36" y="42" width="17" height="4.5" rx="2.25" fill="#CDA556"/>
+  <rect x="36" y="50" width="26" height="4.5" rx="2.25" fill="#671111"/>
+</svg>

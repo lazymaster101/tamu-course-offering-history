@@ -43,6 +43,7 @@ const elements = {
   resultState: document.querySelector("#compare-result-state"),
   thread: document.querySelector("#compare-thread"),
   typing: document.querySelector("#compare-typing"),
+  statusText: document.querySelector("#compare-status-text"),
   messageTemplate: document.querySelector("#compare-message-template"),
   followupForm: document.querySelector("#compare-followup-form"),
   followupQuestion: document.querySelector("#compare-followup-question"),
@@ -71,8 +72,21 @@ function showTranscript() {
   elements.thread.hidden = false;
 }
 
-function setTyping(isVisible) {
+function setTyping(isVisible, message) {
   elements.typing.hidden = !isVisible;
+
+  if (!elements.statusText) {
+    return;
+  }
+
+  if (isVisible) {
+    elements.statusText.textContent = message || "Reading syllabi and building the comparison.";
+    return;
+  }
+
+  elements.statusText.textContent = state.previousResponseId
+    ? "Comparison context is loaded and ready for follow-up questions."
+    : "Ready for a new syllabus comparison.";
 }
 
 function scrollThreadToBottom() {
@@ -581,7 +595,7 @@ async function handleCompareSubmit(event) {
       content: prompt,
       meta: `${items.length} syllabus sources queued for this comparison.`
     });
-    setTyping(true);
+    setTyping(true, "Reading syllabi and building the comparison.");
 
     const payload = await postJson("/api/compare-syllabi", {
       items,
@@ -646,7 +660,7 @@ async function handleFollowupSubmit(event) {
       badge: "Follow-up",
       content: question
     });
-    setTyping(true);
+    setTyping(true, "Thinking through the follow-up against the saved comparison context.");
 
     const payload = await postJson("/api/compare-syllabi", {
       previousResponseId: state.previousResponseId,

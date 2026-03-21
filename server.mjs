@@ -11,9 +11,6 @@ const CACHE_TTL_MS = 1000 * 60 * 60 * 12;
 const CONCURRENCY = 2;
 const REQUEST_RETRIES = 3;
 const RETRY_DELAY_MS = 350;
-const HOWDY_REQUEST_TIMEOUT_MS = 12000;
-const COURSE_SECTIONS_REQUEST_RETRIES = 1;
-const COURSE_SECTIONS_RETRY_DELAY_MS = 250;
 const SYLLABUS_INFO_REQUEST_RETRIES = 1;
 const SYLLABUS_INFO_RETRY_DELAY_MS = 200;
 const SYLLABUS_INFO_TIMEOUT_MS = 2500;
@@ -124,28 +121,6 @@ function shouldRetryHowdyRequest(error, attempt) {
   return attempt < REQUEST_RETRIES && (statusCode === 0 || statusCode === 429 || statusCode >= 500);
 }
 
-async function fetchWithTimeout(url, options, timeoutMs) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), timeoutMs);
-
-  try {
-    return await fetch(url, {
-      ...options,
-      signal: controller.signal
-    });
-  } catch (error) {
-    if (error.name === "AbortError") {
-      const timeoutError = new Error(`Howdy request timed out after ${timeoutMs} ms.`);
-      timeoutError.statusCode = 504;
-      throw timeoutError;
-    }
-
-    throw error;
-  } finally {
-    clearTimeout(timer);
-  }
-}
-
 async function readFreshJson(filePath, ttlMs) {
   try {
     const fileStats = await stat(filePath);
@@ -182,13 +157,13 @@ async function getCachedJson(filePath, ttlMs, fetcher) {
 async function fetchHowdy(path, options = {}) {
   for (let attempt = 0; attempt <= REQUEST_RETRIES; attempt += 1) {
     try {
-      const response = await fetchWithTimeout(`${HOWDY_BASE_URL}${path}`, {
+      const response = await fetch(`${HOWDY_BASE_URL}${path}`, {
         ...options,
         headers: {
           "user-agent": "tamu-course-offering-history/1.0",
           ...(options.headers ?? {})
         }
-      }, HOWDY_REQUEST_TIMEOUT_MS);
+      });
 
       if (!response.ok) {
         const body = await response.text();
@@ -318,82 +293,6 @@ async function fetchHowdyInfoJson(path) {
       }
 
       await wait(SYLLABUS_INFO_RETRY_DELAY_MS * (attempt + 1));
-    }
-  }
-}
-
-async function postHowdyJsonRaw(path, payload, timeoutMs = HOWDY_REQUEST_TIMEOUT_MS) {
-  const requestBody = JSON.stringify(payload);
-
-  for (let attempt = 0; attempt <= COURSE_SECTIONS_REQUEST_RETRIES; attempt += 1) {
-    try {
-      const targetUrl = new URL(path, HOWDY_BASE_URL);
-      const responsePayload = await new Promise((resolvePromise, rejectPromise) => {
-        const request = httpsRequest(
-          targetUrl,
-          {
-            method: "POST",
-            headers: {
-              accept: "application/json",
-              connection: "close",
-              "content-type": "application/json; charset=utf-8",
-              "content-length": Buffer.byteLength(requestBody),
-              "user-agent": "tamu-course-offering-history/1.0"
-            }
-          },
-          (response) => {
-            const chunks = [];
-
-            response.on("data", (chunk) => {
-              chunks.push(chunk);
-            });
-
-            response.on("end", () => {
-              const body = Buffer.concat(chunks).toString("utf8");
-              const statusCode = response.statusCode ?? 0;
-
-              if (statusCode < 200 || statusCode >= 300) {
-                const error = new Error(
-                  `${statusCode} ${response.statusMessage ?? "Request failed"}: ${body.slice(0, 300)}`
-                );
-                error.statusCode = statusCode;
-                rejectPromise(error);
-                return;
-              }
-
-              try {
-                resolvePromise(JSON.parse(body));
-              } catch (error) {
-                rejectPromise(error);
-              }
-            });
-
-            response.on("error", rejectPromise);
-          }
-        );
-
-        request.setTimeout(timeoutMs, () => {
-          const error = new Error(`Howdy request timed out after ${timeoutMs} ms.`);
-          error.statusCode = 504;
-          request.destroy(error);
-        });
-
-        request.on("error", rejectPromise);
-        request.write(requestBody);
-        request.end();
-      });
-
-      return responsePayload;
-    } catch (error) {
-      const canRetry =
-        attempt < COURSE_SECTIONS_REQUEST_RETRIES &&
-        shouldRetryHowdyRequest(error, attempt);
-
-      if (!canRetry) {
-        throw error;
-      }
-
-      await wait(COURSE_SECTIONS_RETRY_DELAY_MS * (attempt + 1));
     }
   }
 }
@@ -572,11 +471,17 @@ async function fetchSectionsForTerm(termCode) {
     join(SECTIONS_CACHE_DIR, `${termCode}.json`),
     CACHE_TTL_MS,
     async () =>
-      postHowdyJsonRaw("/api/course-sections", {
-        startRow: 0,
-        endRow: 0,
-        termCode,
-        publicSearch: "Y"
+      fetchHowdyJson("/api/course-sections", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json; charset=utf-8"
+        },
+        body: JSON.stringify({
+          startRow: 0,
+          endRow: 0,
+          termCode,
+          publicSearch: "Y"
+        })
       })
   );
 }

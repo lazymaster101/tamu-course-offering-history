@@ -14,7 +14,6 @@ const state = {
   activeCourseKey: null,
   activeCampus: "college-station"
 };
-const API_REQUEST_TIMEOUT_MS = 15000;
 
 const elements = {
   form: document.querySelector("#search-form"),
@@ -54,33 +53,11 @@ function showHistoryState(message, title = "Pick a course") {
 }
 
 async function fetchJson(path) {
-  const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), API_REQUEST_TIMEOUT_MS);
-
-  let response;
-
-  try {
-    response = await fetch(path, {
-      signal: controller.signal
-    });
-  } catch (error) {
-    if (error.name === "AbortError") {
-      throw new Error("This request timed out. TAMU's public endpoint did not respond in time.");
-    }
-
-    throw error;
-  } finally {
-    clearTimeout(timer);
-  }
-
-  const payload = await response.json().catch(() => null);
+  const response = await fetch(path);
+  const payload = await response.json();
 
   if (!response.ok) {
-    throw new Error(payload?.error || `Request failed with status ${response.status}.`);
-  }
-
-  if (!payload) {
-    throw new Error("The server returned an invalid response.");
+    throw new Error(payload.error || "Request failed.");
   }
 
   return payload;

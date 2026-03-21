@@ -587,6 +587,13 @@ button {
   gap: 16px;
 }
 
+.compare-thread[hidden],
+.compare-thread-state[hidden],
+.compare-followup-form[hidden],
+.compare-typing[hidden] {
+  display: none !important;
+}
+
 .compare-sources-panel {
   position: sticky;
   top: 12px;

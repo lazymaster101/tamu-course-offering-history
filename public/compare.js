@@ -21,6 +21,7 @@ const STRUCTURED_SECTION_TITLES = [
   "BEST FIT BY STUDENT PRIORITY",
   "DIRECT ANSWER"
 ];
+const COMPARE_UI_LOG_PREFIX = "[compare-ui]";
 
 const state = {
   previousResponseId: null,
@@ -51,6 +52,20 @@ const elements = {
   followupState: document.querySelector("#compare-followup-state")
 };
 
+function logCompareUi(event, details = {}) {
+  const snapshot = {
+    messageCount: state.messages.length,
+    previousResponseId: state.previousResponseId,
+    resultStateHidden: elements.resultState?.hidden ?? null,
+    threadHidden: elements.thread?.hidden ?? null,
+    followupHidden: elements.followupForm?.hidden ?? null,
+    ...details
+  };
+
+  window.__compareUiState = snapshot;
+  console.debug(COMPARE_UI_LOG_PREFIX, event, snapshot);
+}
+
 function setBusy(button, isBusy, idleLabel, busyLabel) {
   button.disabled = isBusy;
   button.textContent = isBusy ? busyLabel : idleLabel;
@@ -65,11 +80,13 @@ function showEmptyTranscript(message) {
   elements.resultState.hidden = false;
   elements.resultState.textContent = message;
   elements.thread.hidden = true;
+  logCompareUi("show-empty", { message });
 }
 
 function showTranscript() {
   elements.resultState.hidden = true;
   elements.thread.hidden = false;
+  logCompareUi("show-thread");
 }
 
 function setTyping(isVisible, message) {
@@ -373,6 +390,7 @@ function renderMessage(message) {
 
 function renderConversation() {
   elements.thread.innerHTML = "";
+  logCompareUi("render-start");
 
   if (!state.messages.length) {
     showEmptyTranscript("Add at least two syllabus sources, then run a comparison.");
@@ -381,11 +399,17 @@ function renderConversation() {
 
   showTranscript();
   state.messages.forEach(renderMessage);
+  logCompareUi("render-finish", { renderedMessages: elements.thread.children.length });
   scrollThreadToBottom();
 }
 
 function addMessage(message) {
   state.messages.push(message);
+  logCompareUi("add-message", {
+    addedRole: message.role,
+    addedBadge: message.badge ?? null,
+    answerLength: typeof message.content === "string" ? message.content.length : null
+  });
   renderConversation();
 }
 
@@ -566,6 +590,7 @@ function resetConversationState() {
   state.previousResponseId = null;
   state.lastDocuments = [];
   state.messages = [];
+  logCompareUi("reset-conversation");
   elements.followupForm.hidden = true;
   elements.followupQuestion.value = "";
   setTyping(false);
@@ -601,6 +626,11 @@ async function handleCompareSubmit(event) {
       items,
       question: prompt
     });
+    logCompareUi("compare-response", {
+      payloadModel: payload.model ?? null,
+      payloadAnswerLength: typeof payload.answer === "string" ? payload.answer.length : null,
+      payloadDocumentCount: Array.isArray(payload.documents) ? payload.documents.length : null
+    });
 
     state.previousResponseId = payload.responseId ?? null;
     state.lastDocuments = payload.documents ?? [];
@@ -613,11 +643,15 @@ async function handleCompareSubmit(event) {
     });
 
     elements.followupForm.hidden = !state.previousResponseId;
+    logCompareUi("compare-finished", {
+      compareStateText: elements.compareState.textContent
+    });
     setHelper(
       elements.compareState,
       `Compared ${items.length} syllabus sources with ${payload.model ?? "the AI model"}.`
     );
   } catch (error) {
+    logCompareUi("compare-error", { errorMessage: error.message });
     addMessage({
       role: "assistant",
       badge: "Error",
@@ -666,6 +700,10 @@ async function handleFollowupSubmit(event) {
       previousResponseId: state.previousResponseId,
       question
     });
+    logCompareUi("followup-response", {
+      payloadModel: payload.model ?? null,
+      payloadAnswerLength: typeof payload.answer === "string" ? payload.answer.length : null
+    });
 
     state.previousResponseId = payload.responseId ?? state.previousResponseId;
 
@@ -679,6 +717,7 @@ async function handleFollowupSubmit(event) {
     elements.followupQuestion.value = "";
     setHelper(elements.followupState, "Follow-up complete.");
   } catch (error) {
+    logCompareUi("followup-error", { errorMessage: error.message });
     addMessage({
       role: "assistant",
       badge: "Error",
@@ -704,3 +743,4 @@ subscribeToCompareSources(renderQueuedSources);
 renderConversation();
 setHelper(elements.compareState, DEFAULT_COMPARE_HELPER);
 setHelper(elements.followupState, DEFAULT_FOLLOWUP_HELPER);
+logCompareUi("boot");

@@ -31,8 +31,8 @@ body {
 }
 
 body[data-page="compare"] .page-shell {
-  width: min(1500px, calc(100% - 24px));
-  margin: 18px auto 28px;
+  width: min(1760px, calc(100% - 12px));
+  margin: 12px auto 18px;
 }
 
 .utility-bar {
@@ -496,9 +496,9 @@ button {
 
 .compare-layout {
   display: grid;
-  gap: 18px;
-  grid-template-columns: minmax(300px, 350px) minmax(0, 1.68fr);
-  margin-top: 18px;
+  gap: 14px;
+  grid-template-columns: minmax(270px, 316px) minmax(0, 1fr);
+  margin-top: 14px;
   align-items: stretch;
 }
 
@@ -589,14 +589,18 @@ button {
 
 .compare-sources-panel {
   position: sticky;
-  top: 18px;
+  top: 12px;
   align-self: start;
-  max-height: calc(100vh - 36px);
+  height: calc(100vh - 24px);
   overflow-y: auto;
 }
 
 .compare-chat-panel {
-  min-height: calc(100vh - 170px);
+  position: sticky;
+  top: 12px;
+  height: calc(100vh - 24px);
+  min-height: 0;
+  overflow: hidden;
 }
 
 .compare-source-toolbar,
@@ -625,8 +629,9 @@ button {
 }
 
 .compare-result-panel {
-  grid-template-rows: auto auto auto minmax(0, 1fr) auto;
-  min-height: calc(100vh - 170px);
+  grid-template-rows: auto auto minmax(0, 1fr) auto;
+  height: calc(100vh - 24px);
+  min-height: 0;
 }
 
 .compare-submit-button {
@@ -676,17 +681,29 @@ button {
   line-height: 1.6;
 }
 
+.compare-thread-shell {
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
 .compare-thread-state {
-  align-self: start;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 100%;
+  text-align: center;
 }
 
 .compare-thread {
   display: grid;
   gap: 16px;
   align-content: start;
+  flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  padding-right: 4px;
+  padding: 2px 8px 20px 0;
   scrollbar-gutter: stable;
 }
 
@@ -906,8 +923,14 @@ button {
 .compare-chat-composer {
   grid-template-columns: minmax(0, 1fr);
   gap: 14px;
-  padding-top: 12px;
+  position: sticky;
+  bottom: 0;
+  z-index: 2;
+  padding-top: 14px;
+  padding-bottom: 4px;
   border-top: 1px solid rgba(80, 0, 0, 0.08);
+  background:
+    linear-gradient(180deg, rgba(246, 239, 230, 0) 0%, rgba(246, 239, 230, 0.9) 18%, rgba(246, 239, 230, 0.98) 100%);
 }
 
 .compare-composer-input {
@@ -917,7 +940,7 @@ button {
 }
 
 .compare-composer-input textarea {
-  min-height: 96px;
+  min-height: 88px;
 }
 
 .compare-composer-footer {
@@ -943,11 +966,11 @@ button {
 
 .compare-hero {
   gap: 0;
-  grid-template-columns: minmax(0, 1.45fr) minmax(280px, 400px);
+  grid-template-columns: minmax(0, 1.6fr) minmax(240px, 320px);
 }
 
 .compare-hero-copy {
-  padding: 26px 30px 24px;
+  padding: 22px 26px 20px;
 }
 
 .compare-hero-topline {
@@ -970,13 +993,13 @@ button {
 
 .compare-hero h1 {
   max-width: none;
-  font-size: clamp(2.4rem, 4.3vw, 4.4rem);
+  font-size: clamp(2.2rem, 4vw, 4rem);
 }
 
 .compare-hero .lede {
   max-width: 56ch;
-  margin-top: 14px;
-  font-size: 0.98rem;
+  margin-top: 12px;
+  font-size: 0.94rem;
 }
 
 .compare-overview {
@@ -984,7 +1007,7 @@ button {
   align-content: center;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 12px;
-  padding: 22px 24px;
+  padding: 18px 18px;
 }
 
 .compare-overview .saved-metric {
@@ -1002,17 +1025,17 @@ button {
 }
 
 .compare-chat-panel .section-heading {
-  margin-bottom: 4px;
+  margin-bottom: 0;
 }
 
 .compare-chat-panel .section-heading h2,
 .compare-sources-panel .section-heading h2 {
-  font-size: clamp(1.7rem, 3vw, 2.2rem);
+  font-size: clamp(1.5rem, 2.3vw, 2rem);
 }
 
 .compare-chat-panel .history-summary,
 .compare-sources-panel .history-summary {
-  margin-top: 10px;
+  margin-top: 8px;
   max-width: none;
 }
 
@@ -1020,8 +1043,8 @@ button {
   display: flex;
   align-items: center;
   gap: 14px;
-  padding: 14px 16px;
-  border-radius: 20px;
+  padding: 12px 14px;
+  border-radius: 18px;
   border: 1px solid rgba(80, 0, 0, 0.09);
   background:
     linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(251, 241, 230, 0.72)),
@@ -1176,13 +1199,18 @@ button {
 
   .compare-sources-panel {
     position: static;
+    height: auto;
     max-height: none;
     overflow: visible;
   }
 
   .compare-chat-panel,
   .compare-result-panel {
+    position: static;
+    top: auto;
+    height: auto;
     min-height: auto;
+    overflow: visible;
   }
 
   .results-list {
@@ -1206,8 +1234,8 @@ button {
   }
 
   body[data-page="compare"] .page-shell {
-    width: min(100% - 18px, 1500px);
-    margin-top: 12px;
+    width: min(100% - 12px, 1760px);
+    margin-top: 8px;
   }
 
   .utility-bar {

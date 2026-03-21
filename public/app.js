@@ -431,21 +431,26 @@ function createSyllabusGroupCard(group, courseContext) {
       group.sections.length > 1 ? "Open shared syllabus" : "Open syllabus";
     wrapper.append(syllabusButton);
 
-    if (compareSource.url) {
-      const compareButton = document.createElement("a");
-      compareButton.className = "result-action-button compare-link-button";
-      compareButton.href = "/compare.html";
-      setCompareButtonState(compareButton, compareSource);
-      compareButton.addEventListener("click", () => {
-        saveCompareSource(compareSource);
-      });
-      wrapper.append(compareButton);
-    }
-
     const syllabusState = document.createElement("p");
     syllabusState.className = "section-detail section-status";
     syllabusState.hidden = true;
     wrapper.append(syllabusState);
+
+    if (compareSource.url) {
+      const compareButton = document.createElement("button");
+      compareButton.className = "result-action-button compare-link-button";
+      compareButton.type = "button";
+      setCompareButtonState(compareButton, compareSource);
+      compareButton.addEventListener("click", () => {
+        saveCompareSource(compareSource);
+        setCompareButtonState(compareButton, compareSource);
+        setSectionStatus(
+          syllabusState,
+          "Queued for AI compare. Stay here and keep adding syllabi, or open AI Compare from the nav when ready."
+        );
+      });
+      wrapper.append(compareButton);
+    }
 
     syllabusButton.addEventListener("click", () =>
       openSyllabus(group.representativeSection, syllabusButton, syllabusState)

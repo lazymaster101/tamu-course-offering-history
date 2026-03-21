@@ -1,4 +1,5 @@
 import { getDegreePlan, listDegreePlans } from "../lib/degree-planner-data.mjs";
+import { resolveRequestUrl } from "./request-url.js";
 
 function jsonResponse(statusCode, payload) {
   return new Response(JSON.stringify(payload), {
@@ -11,7 +12,7 @@ function jsonResponse(statusCode, payload) {
 }
 
 export default async function handler(request) {
-  const url = new URL(request.url);
+  const url = resolveRequestUrl(request);
   const planId = url.searchParams.get("plan")?.trim() || "bs-cs-2025";
 
   try {

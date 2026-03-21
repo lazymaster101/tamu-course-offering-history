@@ -2,8 +2,11 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "buildCommand": "npm run build",
   "functions": {
-    "api/**/*.js": {
+    "api/search-courses.js": {
       "includeFiles": "data/catalog-index.json"
+    },
+    "api/degree-plan.js": {
+      "includeFiles": "data/degree-plans.json"
     }
   }
 }

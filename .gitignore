@@ -1,3 +1,6 @@
 .cache/
 class-search-ui-element.js
 term-selection-ui-element.js
+.env
+.env.*
+!.env.example

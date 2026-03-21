@@ -9,6 +9,6 @@
   "scripts": {
     "build": "node scripts/verify-catalog-index.mjs",
     "build:index": "node scripts/build-catalog-index.mjs",
-    "start": "node server.mjs"
+    "start": "node --env-file-if-exists=.env server.mjs"
   }
 }

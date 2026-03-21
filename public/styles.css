@@ -879,9 +879,8 @@ button {
 }
 
 .compare-chat-composer {
-  grid-template-columns: minmax(0, 1fr) auto;
-  align-items: end;
-  gap: 16px;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 14px;
   padding-top: 8px;
   border-top: 1px solid rgba(80, 0, 0, 0.08);
 }
@@ -889,12 +888,27 @@ button {
 .compare-composer-input {
   display: grid;
   gap: 10px;
+  min-width: 0;
 }
 
-.compare-composer-actions {
-  display: grid;
-  gap: 10px;
-  justify-items: end;
+.compare-composer-input textarea {
+  min-height: 120px;
+}
+
+.compare-composer-footer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.compare-composer-footer .compare-helper {
+  flex: 1 1 320px;
+}
+
+.compare-composer-footer .compare-submit-button {
+  flex: 0 0 auto;
 }
 
 .syllabus-group-card {
@@ -1015,12 +1029,8 @@ button {
     padding-right: 0;
   }
 
-  .compare-chat-composer {
-    grid-template-columns: 1fr;
-  }
-
-  .compare-composer-actions {
-    justify-items: start;
+  .compare-composer-footer {
+    align-items: stretch;
   }
 }
 

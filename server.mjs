@@ -11,6 +11,7 @@ const CACHE_TTL_MS = 1000 * 60 * 60 * 12;
 const CONCURRENCY = 2;
 const REQUEST_RETRIES = 3;
 const RETRY_DELAY_MS = 350;
+const HOWDY_REQUEST_TIMEOUT_MS = 12000;
 const SYLLABUS_INFO_REQUEST_RETRIES = 1;
 const SYLLABUS_INFO_RETRY_DELAY_MS = 200;
 const SYLLABUS_INFO_TIMEOUT_MS = 2500;
@@ -121,6 +122,28 @@ function shouldRetryHowdyRequest(error, attempt) {
   return attempt < REQUEST_RETRIES && (statusCode === 0 || statusCode === 429 || statusCode >= 500);
 }
 
+async function fetchWithTimeout(url, options, timeoutMs) {
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), timeoutMs);
+
+  try {
+    return await fetch(url, {
+      ...options,
+      signal: controller.signal
+    });
+  } catch (error) {
+    if (error.name === "AbortError") {
+      const timeoutError = new Error(`Howdy request timed out after ${timeoutMs} ms.`);
+      timeoutError.statusCode = 504;
+      throw timeoutError;
+    }
+
+    throw error;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
 async function readFreshJson(filePath, ttlMs) {
   try {
     const fileStats = await stat(filePath);
@@ -157,13 +180,13 @@ async function getCachedJson(filePath, ttlMs, fetcher) {
 async function fetchHowdy(path, options = {}) {
   for (let attempt = 0; attempt <= REQUEST_RETRIES; attempt += 1) {
     try {
-      const response = await fetch(`${HOWDY_BASE_URL}${path}`, {
+      const response = await fetchWithTimeout(`${HOWDY_BASE_URL}${path}`, {
         ...options,
         headers: {
           "user-agent": "tamu-course-offering-history/1.0",
           ...(options.headers ?? {})
         }
-      });
+      }, HOWDY_REQUEST_TIMEOUT_MS);
 
       if (!response.ok) {
         const body = await response.text();

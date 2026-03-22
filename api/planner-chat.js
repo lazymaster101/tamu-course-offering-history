@@ -15,46 +15,48 @@ async function readJsonRequestBody(request) {
   }
 }
 
-export default async function handler(request) {
-  try {
-    if (request.method !== "POST") {
+export default {
+  async fetch(request) {
+    try {
+      if (request.method !== "POST") {
+        return Response.json(
+          {
+            error: "Method Not Allowed"
+          },
+          {
+            status: 405,
+            headers: {
+              "cache-control": "no-store"
+            }
+          }
+        );
+      }
+
+      const payload = await readJsonRequestBody(request);
+      const result = await chatWithDegreePlanner({
+        plannerState: payload?.plannerState,
+        question: payload?.question,
+        previousResponseId: payload?.previousResponseId
+      });
+
+      return Response.json(result, {
+        status: 200,
+        headers: {
+          "cache-control": "no-store"
+        }
+      });
+    } catch (error) {
       return Response.json(
         {
-          error: "Method Not Allowed"
+          error: error.message || "Unknown planner-chat error."
         },
         {
-          status: 405,
+          status: error.statusCode ?? 500,
           headers: {
             "cache-control": "no-store"
           }
         }
       );
     }
-
-    const payload = await readJsonRequestBody(request);
-    const result = await chatWithDegreePlanner({
-      plannerState: payload?.plannerState,
-      question: payload?.question,
-      previousResponseId: payload?.previousResponseId
-    });
-
-    return Response.json(result, {
-      status: 200,
-      headers: {
-        "cache-control": "no-store"
-      }
-    });
-  } catch (error) {
-    return Response.json(
-      {
-        error: error.message || "Unknown planner-chat error."
-      },
-      {
-        status: error.statusCode ?? 500,
-        headers: {
-          "cache-control": "no-store"
-        }
-      }
-    );
   }
-}
+};

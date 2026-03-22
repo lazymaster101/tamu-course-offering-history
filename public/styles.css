@@ -4969,12 +4969,13 @@ body[data-page="planner"] .planner-assistant-head h2 {
 /* Final planner middle-column scrolling fix */
 
 body[data-page="planner"] .planner-main-panel {
+  display: flex !important;
+  flex-direction: column;
   height: calc(100vh - var(--topbar-height) - 6rem);
   min-height: calc(100vh - var(--topbar-height) - 6rem);
   overflow-y: auto;
   overflow-x: hidden;
-  align-content: start;
-  grid-auto-rows: max-content;
+  align-items: stretch;
   padding-right: 0.55rem;
 }
 
@@ -4992,29 +4993,35 @@ body[data-page="planner"] .planner-summary-grid {
 }
 
 body[data-page="planner"] .planner-graph-shell {
+  flex: 0 0 auto;
   height: auto;
   min-height: 46rem;
-  flex: 0 0 auto;
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr);
 }
 
 body[data-page="planner"] .planner-graph-canvas {
-  height: auto;
+  height: auto !important;
   min-height: 41rem;
 }
 
 body[data-page="planner"] .planner-card-suggestions {
+  flex: 0 0 auto;
   min-height: 25rem;
   height: auto;
   overflow: visible;
+  display: block;
 }
 
 body[data-page="planner"] .planner-suggestion-stack,
 body[data-page="planner"] .planner-suggestion-list {
+  height: auto;
   max-height: none;
   overflow: visible;
 }
 
 body[data-page="planner"] .planner-card-schedule {
+  flex: 0 0 auto;
   min-height: 43rem;
   height: auto;
 }
@@ -5025,6 +5032,7 @@ body[data-page="planner"] .planner-schedule-board-shell {
 
 @media (max-width: 1400px) {
   body[data-page="planner"] .planner-main-panel {
+    display: block !important;
     height: auto;
     min-height: 0;
     overflow: visible;

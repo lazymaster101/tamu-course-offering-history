@@ -3,6 +3,7 @@ const STORAGE_KEYS = {
   cart: "tamu-course-cart-v1",
   favorites: "tamu-course-favorites-v1"
 };
+const SCHEDULES_STORAGE_KEY = "tamu-favorite-schedules-v1";
 
 const COLLECTION_NAMES = new Set(Object.keys(STORAGE_KEYS));
 
@@ -128,6 +129,111 @@ export function subscribeToSavedCourses(listener) {
     window.removeEventListener("saved-courses-changed", handler);
     window.removeEventListener("storage", handler);
   };
+}
+
+export function buildFavoriteScheduleId(scheduleRecord) {
+  const termCode = String(scheduleRecord?.termCode ?? "").trim();
+  const crns = Array.isArray(scheduleRecord?.sections)
+    ? scheduleRecord.sections
+        .map((section) => String(section?.crn ?? "").trim())
+        .filter(Boolean)
+        .sort()
+    : [];
+
+  return [termCode || "term", ...crns].join("::");
+}
+
+function normalizeFavoriteScheduleSection(section) {
+  return {
+    courseCode: String(section?.courseCode ?? "").trim().toUpperCase(),
+    courseTitle: String(section?.courseTitle ?? "").trim(),
+    crn: String(section?.crn ?? "").trim(),
+    section: String(section?.section ?? "").trim(),
+    hours: Number.isFinite(Number(section?.hours)) ? Number(section.hours) : 0,
+    instructors: Array.isArray(section?.instructors)
+      ? section.instructors.map((name) => String(name ?? "").trim()).filter(Boolean)
+      : [],
+    meetings: Array.isArray(section?.meetings)
+      ? section.meetings.map((meeting) => ({
+          meetingType: String(meeting?.meetingType ?? "").trim(),
+          days: Array.isArray(meeting?.days)
+            ? meeting.days.map((day) => String(day ?? "").trim()).filter(Boolean)
+            : [],
+          beginTime: meeting?.beginTime ?? null,
+          endTime: meeting?.endTime ?? null,
+          building: String(meeting?.building ?? "").trim(),
+          room: String(meeting?.room ?? "").trim()
+        }))
+      : []
+  };
+}
+
+export function normalizeFavoriteSchedule(scheduleRecord) {
+  const sections = Array.isArray(scheduleRecord?.sections)
+    ? scheduleRecord.sections.map(normalizeFavoriteScheduleSection)
+    : [];
+
+  return {
+    id: buildFavoriteScheduleId({ ...scheduleRecord, sections }),
+    label: String(scheduleRecord?.label ?? "").trim() || "Favorite schedule",
+    campus: String(scheduleRecord?.campus ?? "college-station").trim().toLowerCase(),
+    campusLabel: String(scheduleRecord?.campusLabel ?? "College Station").trim(),
+    termCode: String(scheduleRecord?.termCode ?? "").trim() || null,
+    termDescription: String(scheduleRecord?.termDescription ?? "").trim() || null,
+    optionId: String(scheduleRecord?.optionId ?? "").trim() || null,
+    totalCredits:
+      Number.isFinite(Number(scheduleRecord?.totalCredits))
+        ? Number(scheduleRecord.totalCredits)
+        : sections.reduce((sum, section) => sum + Number(section?.hours ?? 0), 0),
+    scheduledCourseCount:
+      Number.isFinite(Number(scheduleRecord?.scheduledCourseCount))
+        ? Number(scheduleRecord.scheduledCourseCount)
+        : sections.length,
+    requestedCourseCount:
+      Number.isFinite(Number(scheduleRecord?.requestedCourseCount))
+        ? Number(scheduleRecord.requestedCourseCount)
+        : sections.length,
+    sections,
+    savedAt: scheduleRecord?.savedAt ?? new Date().toISOString()
+  };
+}
+
+export function getFavoriteSchedules() {
+  return readStorageArray(SCHEDULES_STORAGE_KEY);
+}
+
+export function hasFavoriteSchedule(scheduleRecord) {
+  const scheduleId = buildFavoriteScheduleId(scheduleRecord);
+  return getFavoriteSchedules().some((item) => item.id === scheduleId);
+}
+
+export function saveFavoriteSchedule(scheduleRecord) {
+  const nextSchedule = normalizeFavoriteSchedule(scheduleRecord);
+  const nextItems = getFavoriteSchedules().filter((item) => item.id !== nextSchedule.id);
+  nextItems.unshift(nextSchedule);
+  writeStorageArray(SCHEDULES_STORAGE_KEY, nextItems);
+  emitSavedCoursesChanged();
+  return nextSchedule;
+}
+
+export function removeFavoriteSchedule(scheduleRecordOrId) {
+  const scheduleId =
+    typeof scheduleRecordOrId === "string"
+      ? scheduleRecordOrId
+      : buildFavoriteScheduleId(scheduleRecordOrId);
+  const nextItems = getFavoriteSchedules().filter((item) => item.id !== scheduleId);
+  writeStorageArray(SCHEDULES_STORAGE_KEY, nextItems);
+  emitSavedCoursesChanged();
+}
+
+export function toggleFavoriteSchedule(scheduleRecord) {
+  if (hasFavoriteSchedule(scheduleRecord)) {
+    removeFavoriteSchedule(scheduleRecord);
+    return false;
+  }
+
+  saveFavoriteSchedule(scheduleRecord);
+  return true;
 }
 
 export function buildExplorerUrl(course) {

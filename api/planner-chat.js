@@ -1,4 +1,5 @@
 import { chatWithDegreePlanner } from "../lib/openai-planner.mjs";
+import { resolveRequestUrl } from "./request-url.js";
 
 async function readJsonRequestBody(request) {
   const rawBody = await request.text();
@@ -36,7 +37,8 @@ export default {
       const result = await chatWithDegreePlanner({
         plannerState: payload?.plannerState,
         question: payload?.question,
-        previousResponseId: payload?.previousResponseId
+        previousResponseId: payload?.previousResponseId,
+        requestOrigin: resolveRequestUrl(request).origin
       });
 
       return Response.json(result, {

@@ -973,10 +973,13 @@ async function handleApi(request, response, url) {
       }
 
       const payload = await readJsonRequestBody(request);
+      const protocol = request.headers["x-forwarded-proto"] ?? "http";
+      const requestOrigin = `${protocol}://${request.headers.host}`;
       const result = await chatWithDegreePlanner({
         plannerState: payload?.plannerState,
         question: payload?.question,
-        previousResponseId: payload?.previousResponseId
+        previousResponseId: payload?.previousResponseId,
+        requestOrigin
       });
 
       jsonResponse(response, 200, result);

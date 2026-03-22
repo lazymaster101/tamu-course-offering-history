@@ -6,8 +6,11 @@ import {
 import {
   formatSavedCourseCode,
   getSavedCourses,
+  hasFavoriteSchedule,
   removeCourse,
+  removeFavoriteSchedule,
   saveCourse,
+  saveFavoriteSchedule,
   subscribeToSavedCourses
 } from "./saved-courses.js";
 import { evaluatePlannerState } from "./planner-engine.js";
@@ -53,7 +56,9 @@ const state = {
   scheduleRecommendation: null,
   selectedScheduleId: null,
   scheduleRequestInFlight: false,
-  scheduleFingerprint: null
+  scheduleFingerprint: null,
+  transcriptRailHidden: false,
+  assistantRailHidden: false
 };
 
 const elements = {
@@ -70,6 +75,7 @@ const elements = {
   summaryGrid: document.querySelector("#planner-summary-grid"),
   graphEmpty: document.querySelector("#planner-graph-empty"),
   graphCanvas: document.querySelector("#planner-graph-canvas"),
+  graphBubbles: document.querySelector("#planner-graph-bubbles"),
   graphColumns: document.querySelector("#planner-graph-columns"),
   graphEdges: document.querySelector("#planner-graph-edges"),
   zoomOutButton: document.querySelector("#planner-zoom-out"),
@@ -88,6 +94,7 @@ const elements = {
   scheduleTerm: document.querySelector("#planner-schedule-term"),
   scheduleMeta: document.querySelector("#planner-schedule-meta"),
   scheduleOptionTabs: document.querySelector("#planner-schedule-option-tabs"),
+  saveScheduleButton: document.querySelector("#planner-save-schedule"),
   scheduleBoard: document.querySelector("#planner-schedule-board"),
   scheduleFlags: document.querySelector("#planner-schedule-flags"),
   scheduleTableBody: document.querySelector("#planner-schedule-table-body"),
@@ -115,7 +122,9 @@ const elements = {
   reviewModalDismiss: document.querySelector("[data-planner-review-close]"),
   manualModal: document.querySelector("#planner-manual-modal"),
   manualModalClose: document.querySelector("#planner-manual-close"),
-  manualModalDismiss: document.querySelector("[data-planner-manual-close]")
+  manualModalDismiss: document.querySelector("[data-planner-manual-close]"),
+  toggleTranscriptRailButton: document.querySelector("#planner-toggle-transcript-rail"),
+  toggleAssistantRailButton: document.querySelector("#planner-toggle-assistant-rail")
 };
 
 function readPlannerStorage() {
@@ -145,7 +154,9 @@ function writePlannerStorage() {
         previousResponseId: state.previousResponseId,
         scheduleRecommendation: state.scheduleRecommendation,
         selectedScheduleId: state.selectedScheduleId,
-        scheduleFingerprint: state.scheduleFingerprint
+        scheduleFingerprint: state.scheduleFingerprint,
+        transcriptRailHidden: state.transcriptRailHidden,
+        assistantRailHidden: state.assistantRailHidden
       })
     );
   } catch {
@@ -174,6 +185,8 @@ function hydratePlannerStorage(snapshot) {
       : null;
   state.selectedScheduleId = snapshot.selectedScheduleId ?? null;
   state.scheduleFingerprint = snapshot.scheduleFingerprint ?? null;
+  state.transcriptRailHidden = Boolean(snapshot.transcriptRailHidden);
+  state.assistantRailHidden = Boolean(snapshot.assistantRailHidden);
   syncCartFromSavedPlan();
 }
 
@@ -202,6 +215,31 @@ function syncCartFromSavedPlan() {
       source: existing?.source ?? "semester-plan"
     };
   });
+}
+
+function applyPlannerLayoutState() {
+  document.body.classList.toggle("planner-hide-transcript-rail", state.transcriptRailHidden);
+  document.body.classList.toggle("planner-hide-assistant-rail", state.assistantRailHidden);
+
+  if (elements.toggleTranscriptRailButton) {
+    elements.toggleTranscriptRailButton.textContent = state.transcriptRailHidden
+      ? "Show transcript rail"
+      : "Hide transcript rail";
+    elements.toggleTranscriptRailButton.classList.toggle(
+      "is-active",
+      state.transcriptRailHidden
+    );
+  }
+
+  if (elements.toggleAssistantRailButton) {
+    elements.toggleAssistantRailButton.textContent = state.assistantRailHidden
+      ? "Show Planner AI rail"
+      : "Hide Planner AI rail";
+    elements.toggleAssistantRailButton.classList.toggle(
+      "is-active",
+      state.assistantRailHidden
+    );
+  }
 }
 
 const VERIFIED_UCC_CATEGORIES = [
@@ -297,6 +335,25 @@ function buildSchedulePayload() {
     })),
     compareSources: getCompareSources(),
     campus: "college-station"
+  };
+}
+
+function buildFavoriteScheduleRecord(schedule) {
+  if (!schedule || !state.scheduleRecommendation?.targetTerm) {
+    return null;
+  }
+
+  return {
+    label: `${state.scheduleRecommendation.targetTerm.termDescription ?? "Upcoming term"} schedule`,
+    campus: "college-station",
+    campusLabel: "College Station",
+    termCode: state.scheduleRecommendation.targetTerm.termCode ?? null,
+    termDescription: state.scheduleRecommendation.targetTerm.termDescription ?? "Upcoming term",
+    optionId: schedule.id ?? null,
+    totalCredits: schedule.summary?.totalCredits ?? 0,
+    scheduledCourseCount: schedule.summary?.scheduledCourseCount ?? schedule.sections?.length ?? 0,
+    requestedCourseCount: schedule.summary?.requestedCourseCount ?? schedule.sections?.length ?? 0,
+    sections: schedule.sections ?? []
   };
 }
 
@@ -575,6 +632,18 @@ function getCurrentPlannerPayload() {
       code: item.code,
       title: item.title,
       source: item.source
+    })),
+    shortlistSources: getCompareSources().map((source) => ({
+      id: source.id ?? null,
+      label: source.label ?? null,
+      url: source.url ?? null,
+      subject: source.subject ?? null,
+      courseNumber: source.courseNumber ?? null,
+      termCode: source.termCode ?? null,
+      termDescription: source.termDescription ?? null,
+      instructorLabel: source.instructorLabel ?? null,
+      honorsLabel: source.honorsLabel ?? null,
+      sectionsLabel: source.sectionsLabel ?? null
     })),
     flexibleProgress: state.evaluation.flexibleProgress,
     eligibleRequiredCourses: state.evaluation.eligibleRequiredCourses.map((node) => ({
@@ -1009,6 +1078,16 @@ function buildGraphRenderNodes() {
   }
 
   const equivalentMap = buildEquivalentPlannerCodeMap();
+  const transcriptTermLookup = new Map();
+
+  transcript.courses.forEach((course) => {
+    [course.code, equivalentMap.get(course.code)].filter(Boolean).forEach((mappedCode) => {
+      if (!transcriptTermLookup.has(mappedCode)) {
+        transcriptTermLookup.set(mappedCode, course);
+      }
+    });
+  });
+
   const activeCodes = new Set([
     ...transcript.completedCourseCodes,
     ...transcript.inProgressCourseCodes,
@@ -1016,9 +1095,21 @@ function buildGraphRenderNodes() {
   ].flatMap((code) => [code, equivalentMap.get(code)].filter(Boolean)));
 
   const representedCodes = new Set();
-  state.evaluation.graphNodes.forEach((node) => {
+  const coreNodes = state.evaluation.graphNodes.map((node) => {
+    const transcriptMatch =
+      transcriptTermLookup.get(node.completedCode) ??
+      transcriptTermLookup.get(node.inProgressCode) ??
+      transcriptTermLookup.get(node.code) ??
+      null;
+
     representedCodes.add(node.code);
     (node.matches ?? []).forEach((code) => representedCodes.add(code));
+    return {
+      ...node,
+      term:
+        transcriptMatch?.term ??
+        (node.plannedCode ? "Semester plan" : null)
+    };
   });
 
   const transcriptExtras = transcript.courses
@@ -1082,7 +1173,7 @@ function buildGraphRenderNodes() {
       };
     });
 
-  return [...state.evaluation.graphNodes, ...transcriptExtras, ...plannedExtras];
+  return [...coreNodes, ...transcriptExtras, ...plannedExtras];
 }
 
 function buildRenderGraphEdges(nodes) {
@@ -1713,6 +1804,9 @@ function computeGraphLayout(nodes) {
 
 function applyGraphTransform() {
   const transform = `translate(${state.graphPanX}px, ${state.graphPanY}px) scale(${state.graphScale})`;
+  if (elements.graphBubbles) {
+    elements.graphBubbles.style.transform = transform;
+  }
   elements.graphColumns.style.transform = transform;
   elements.graphEdges.style.transform = transform;
 }
@@ -1772,6 +1866,7 @@ function renderGraph() {
   if (!state.plan || !state.evaluation) {
     elements.graphEmpty.hidden = false;
     elements.graphCanvas.hidden = true;
+    elements.graphBubbles.innerHTML = "";
     elements.nodeDetail.hidden = true;
     state.graphLayout = null;
     return;
@@ -1779,9 +1874,12 @@ function renderGraph() {
 
   elements.graphEmpty.hidden = true;
   elements.graphCanvas.hidden = false;
+  elements.graphBubbles.innerHTML = "";
   elements.graphColumns.innerHTML = "";
   state.graphLayout = computeGraphLayout(state.graphRenderNodes);
 
+  elements.graphBubbles.style.width = `${state.graphLayout.width}px`;
+  elements.graphBubbles.style.height = `${state.graphLayout.height}px`;
   elements.graphColumns.style.width = `${state.graphLayout.width}px`;
   elements.graphColumns.style.height = `${state.graphLayout.height}px`;
   elements.graphEdges.style.width = `${state.graphLayout.width}px`;
@@ -1829,7 +1927,73 @@ function renderGraph() {
   requestAnimationFrame(() => {
     initializeGraphPan(state.graphLayout);
     setZoomHint();
+    renderGraphTermBubbles();
     drawGraphEdges();
+  });
+}
+
+function renderGraphTermBubbles() {
+  if (!elements.graphBubbles || !state.graphLayout) {
+    return;
+  }
+
+  elements.graphBubbles.innerHTML = "";
+
+  const groups = new Map();
+
+  state.graphRenderNodes.forEach((node) => {
+    if (!node.term || (node.state !== "completed" && node.state !== "in-progress")) {
+      return;
+    }
+
+    const position = state.graphLayout.positions[node.id];
+    if (!position) {
+      return;
+    }
+
+    if (!groups.has(node.term)) {
+      groups.set(node.term, []);
+    }
+
+    groups.get(node.term).push({
+      node,
+      position
+    });
+  });
+
+  [...groups.entries()].forEach(([term, items]) => {
+    const bounds = items.reduce(
+      (current, entry) => ({
+        left: Math.min(current.left, entry.position.x - 82),
+        top: Math.min(current.top, entry.position.y - 52),
+        right: Math.max(current.right, entry.position.x + 82),
+        bottom: Math.max(current.bottom, entry.position.y + 52)
+      }),
+      {
+        left: Number.POSITIVE_INFINITY,
+        top: Number.POSITIVE_INFINITY,
+        right: Number.NEGATIVE_INFINITY,
+        bottom: Number.NEGATIVE_INFINITY
+      }
+    );
+
+    if (!Number.isFinite(bounds.left)) {
+      return;
+    }
+
+    const bubble = document.createElement("article");
+    bubble.className = "planner-term-bubble";
+    bubble.style.left = `${bounds.left - 20}px`;
+    bubble.style.top = `${bounds.top - 28}px`;
+    bubble.style.width = `${bounds.right - bounds.left + 40}px`;
+    bubble.style.height = `${bounds.bottom - bounds.top + 56}px`;
+
+    const label = document.createElement("p");
+    label.className = "planner-term-bubble-label";
+    label.textContent = term;
+    bubble.append(label);
+
+    elements.graphBubbles.append(bubble);
   });
 }
 
@@ -2467,6 +2631,8 @@ function renderScheduleRecommendation() {
   elements.scheduleFlags.innerHTML = "";
   elements.scheduleTableBody.innerHTML = "";
   elements.scheduleBoard.innerHTML = "";
+  elements.saveScheduleButton.disabled = true;
+  elements.saveScheduleButton.textContent = "Favorite schedule";
 
   if (!hasPlanCourses) {
     elements.scheduleResult.hidden = true;
@@ -2505,10 +2671,21 @@ function renderScheduleRecommendation() {
   if (!schedule) {
     elements.scheduleState.hidden = false;
     elements.scheduleState.textContent =
-      "No schedule options were generated from the current semester plan.";
+      state.scheduleRecommendation.unavailableCourses?.length
+        ? `No schedule options were generated. ${state.scheduleRecommendation.unavailableCourses
+            .slice(0, 2)
+            .map((course) => `${course.code}: ${course.reason}`)
+            .join(" ")}`
+        : "No schedule options were generated from the current semester plan.";
     elements.scheduleResult.hidden = true;
     return;
   }
+
+  const favoriteSchedule = buildFavoriteScheduleRecord(schedule);
+  const isFavorite = favoriteSchedule ? hasFavoriteSchedule(favoriteSchedule) : false;
+  elements.saveScheduleButton.disabled = false;
+  elements.saveScheduleButton.textContent = isFavorite ? "Favorited schedule" : "Favorite schedule";
+  elements.saveScheduleButton.classList.toggle("is-active", isFavorite);
 
   const metaBits = [
     `${schedule.summary.scheduledCourseCount}/${schedule.summary.requestedCourseCount} courses scheduled`,
@@ -2956,6 +3133,36 @@ function attachEventListeners() {
     }
   });
 
+  elements.saveScheduleButton.addEventListener("click", () => {
+    const schedule = getSelectedScheduleOption();
+    const favoriteSchedule = buildFavoriteScheduleRecord(schedule);
+    if (!favoriteSchedule) {
+      return;
+    }
+
+    if (hasFavoriteSchedule(favoriteSchedule)) {
+      removeFavoriteSchedule(favoriteSchedule);
+      setHelper(elements.chatHelper, "Removed that timetable from favorite schedules.");
+    } else {
+      saveFavoriteSchedule(favoriteSchedule);
+      setHelper(elements.chatHelper, "Saved that timetable to favorite schedules.");
+    }
+
+    renderScheduleRecommendation();
+  });
+
+  elements.toggleTranscriptRailButton.addEventListener("click", () => {
+    state.transcriptRailHidden = !state.transcriptRailHidden;
+    applyPlannerLayoutState();
+    writePlannerStorage();
+  });
+
+  elements.toggleAssistantRailButton.addEventListener("click", () => {
+    state.assistantRailHidden = !state.assistantRailHidden;
+    applyPlannerLayoutState();
+    writePlannerStorage();
+  });
+
   elements.graphCanvas.addEventListener("pointerdown", handleGraphPointerDown);
   elements.graphCanvas.addEventListener("pointermove", handleGraphPointerMove);
   elements.graphCanvas.addEventListener("pointerup", handleGraphPointerUp);
@@ -3011,6 +3218,7 @@ async function init() {
   const persisted = readPlannerStorage();
   await loadDegreePlan(persisted?.planId ?? "bs-cs-2025");
   hydratePlannerStorage(persisted);
+  applyPlannerLayoutState();
   recomputePlannerState();
 }
 

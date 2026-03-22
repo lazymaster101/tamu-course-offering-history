@@ -112,6 +112,14 @@
                 Grounded in the 2025-2026 TAMU Computer Science BS plan plus the exported CSCE
                 advising pages and fast-track material in this repo.
               </p>
+              <div class="planner-rail-toggles" aria-label="Planner side rail controls">
+                <button id="planner-toggle-transcript-rail" class="result-action-button" type="button">
+                  Hide transcript rail
+                </button>
+                <button id="planner-toggle-assistant-rail" class="result-action-button" type="button">
+                  Hide Planner AI rail
+                </button>
+              </div>
             </div>
           </header>
 
@@ -193,6 +201,7 @@
                   </p>
                 </div>
                 <div id="planner-graph-canvas" class="planner-graph-canvas" hidden>
+                  <div id="planner-graph-bubbles" class="planner-graph-bubbles" aria-hidden="true"></div>
                   <svg id="planner-graph-edges" class="planner-graph-edges" aria-hidden="true"></svg>
                   <div id="planner-graph-columns" class="planner-graph-columns"></div>
                 </div>
@@ -224,7 +233,7 @@
                 </div>
               </section>
 
-              <section class="planner-card planner-card-schedule">
+              <section id="planner-schedule-builder" class="planner-card planner-card-schedule">
                 <div class="planner-card-head planner-card-head-schedule">
                   <div>
                     <p class="section-kicker">Schedule builder</p>
@@ -250,7 +259,12 @@
                       <p class="planner-schedule-term-label">Target term</p>
                       <h4 id="planner-schedule-term">Upcoming term</h4>
                     </div>
-                    <div id="planner-schedule-option-tabs" class="planner-schedule-option-tabs"></div>
+                    <div class="planner-schedule-summary-actions">
+                      <div id="planner-schedule-option-tabs" class="planner-schedule-option-tabs"></div>
+                      <button id="planner-save-schedule" class="result-action-button" type="button">
+                        Favorite schedule
+                      </button>
+                    </div>
                   </div>
 
                   <div id="planner-schedule-meta" class="planner-schedule-meta"></div>

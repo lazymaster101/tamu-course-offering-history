@@ -1,9 +1,11 @@
 import {
   buildExplorerUrl,
   formatSavedCourseCode,
+  getFavoriteSchedules,
   getSavedCourses,
   hasSavedCourse,
   removeCourse,
+  removeFavoriteSchedule,
   saveCourse,
   subscribeToSavedCourses
 } from "./saved-courses.js";
@@ -17,12 +19,15 @@ import { startSavedCourseBadgeSync } from "./page-shell.js";
 const elements = {
   planState: document.querySelector("#plan-state"),
   planList: document.querySelector("#plan-list"),
+  schedulesState: document.querySelector("#schedules-state"),
+  schedulesList: document.querySelector("#schedules-list"),
   shortlistState: document.querySelector("#shortlist-state"),
   shortlistList: document.querySelector("#shortlist-list"),
   favoritesState: document.querySelector("#favorites-state"),
   favoritesList: document.querySelector("#favorites-list"),
   courseTemplate: document.querySelector("#saved-course-template"),
-  shortlistTemplate: document.querySelector("#saved-shortlist-template")
+  shortlistTemplate: document.querySelector("#saved-shortlist-template"),
+  scheduleTemplate: document.querySelector("#saved-schedule-template")
 };
 
 function setActionButtonState(button, isActive, activeLabel, inactiveLabel) {
@@ -152,6 +157,52 @@ function createShortlistCard(source) {
   return fragment;
 }
 
+function formatScheduleMeta(schedule) {
+  const parts = [
+    schedule.termDescription,
+    schedule.campusLabel,
+    `${schedule.scheduledCourseCount}/${schedule.requestedCourseCount} courses`,
+    `${schedule.totalCredits} hrs`
+  ].filter(Boolean);
+
+  return parts.join(" • ");
+}
+
+function createScheduleCard(schedule) {
+  const fragment = elements.scheduleTemplate.content.cloneNode(true);
+  const tags = fragment.querySelector(".saved-course-tags");
+  const codeNode = fragment.querySelector(".saved-schedule-code");
+  const titleNode = fragment.querySelector(".saved-schedule-title");
+  const metaNode = fragment.querySelector(".saved-schedule-meta");
+  const sectionsNode = fragment.querySelector(".saved-schedule-sections");
+  const openLink = fragment.querySelector(".saved-schedule-open");
+  const removeButton = fragment.querySelector(".saved-schedule-remove");
+
+  codeNode.textContent = schedule.termCode || "Saved schedule";
+  titleNode.textContent = schedule.label || schedule.termDescription || "Favorite schedule";
+  metaNode.textContent = formatScheduleMeta(schedule);
+  openLink.href = "/planner.html";
+
+  tags.append(createTag("Schedule", "muted"));
+  tags.append(createTag(schedule.campusLabel || "College Station", "standard"));
+
+  (schedule.sections ?? []).forEach((section) => {
+    const chip = document.createElement("p");
+    chip.className = "saved-schedule-section";
+    chip.textContent = `${section.courseCode} • ${section.section} • ${
+      section.instructors?.[0] || "Staff / TBD"
+    }`;
+    sectionsNode.append(chip);
+  });
+
+  removeButton.addEventListener("click", () => {
+    removeFavoriteSchedule(schedule.id);
+    renderSavedCollections();
+  });
+
+  return fragment;
+}
+
 function renderCourseCollection(collectionName, stateNode, listNode) {
   const courses = getSavedCourses(collectionName);
   listNode.innerHTML = "";
@@ -186,8 +237,31 @@ function renderShortlistCollection() {
   });
 }
 
+function renderFavoriteSchedulesCollection() {
+  const schedules = getFavoriteSchedules();
+  elements.schedulesList.innerHTML = "";
+
+  const countNode = document.querySelector("[data-saved-schedule-count]");
+  if (countNode) {
+    countNode.textContent = String(schedules.length);
+  }
+
+  if (!schedules.length) {
+    elements.schedulesState.hidden = false;
+    elements.schedulesList.hidden = true;
+    return;
+  }
+
+  elements.schedulesState.hidden = true;
+  elements.schedulesList.hidden = false;
+  schedules.forEach((schedule) => {
+    elements.schedulesList.append(createScheduleCard(schedule));
+  });
+}
+
 function renderSavedCollections() {
   renderCourseCollection("plan", elements.planState, elements.planList);
+  renderFavoriteSchedulesCollection();
   renderShortlistCollection();
   renderCourseCollection("favorites", elements.favoritesState, elements.favoritesList);
 }

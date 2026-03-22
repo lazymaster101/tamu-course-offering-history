@@ -4965,3 +4965,78 @@ body[data-page="planner"] .planner-assistant-head h2 {
     min-width: 42rem;
   }
 }
+
+/* Final planner middle-column scrolling fix */
+
+body[data-page="planner"] .planner-main-panel {
+  height: calc(100vh - var(--topbar-height) - 6rem);
+  min-height: calc(100vh - var(--topbar-height) - 6rem);
+  overflow-y: auto;
+  overflow-x: hidden;
+  align-content: start;
+  grid-auto-rows: max-content;
+  padding-right: 0.55rem;
+}
+
+body[data-page="planner"] .planner-main-panel::-webkit-scrollbar {
+  width: 10px;
+}
+
+body[data-page="planner"] .planner-main-panel::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: rgba(80, 0, 0, 0.18);
+}
+
+body[data-page="planner"] .planner-summary-grid {
+  flex: 0 0 auto;
+}
+
+body[data-page="planner"] .planner-graph-shell {
+  height: auto;
+  min-height: 46rem;
+  flex: 0 0 auto;
+}
+
+body[data-page="planner"] .planner-graph-canvas {
+  height: auto;
+  min-height: 41rem;
+}
+
+body[data-page="planner"] .planner-card-suggestions {
+  min-height: 25rem;
+  height: auto;
+  overflow: visible;
+}
+
+body[data-page="planner"] .planner-suggestion-stack,
+body[data-page="planner"] .planner-suggestion-list {
+  max-height: none;
+  overflow: visible;
+}
+
+body[data-page="planner"] .planner-card-schedule {
+  min-height: 43rem;
+  height: auto;
+}
+
+body[data-page="planner"] .planner-schedule-board-shell {
+  max-height: none;
+}
+
+@media (max-width: 1400px) {
+  body[data-page="planner"] .planner-main-panel {
+    height: auto;
+    min-height: 0;
+    overflow: visible;
+    padding-right: 0;
+  }
+
+  body[data-page="planner"] .planner-graph-shell {
+    min-height: 38rem;
+  }
+
+  body[data-page="planner"] .planner-card-suggestions,
+  body[data-page="planner"] .planner-card-schedule {
+    min-height: 0;
+  }
+}

@@ -223,8 +223,12 @@ function applyPlannerLayoutState() {
 
   if (elements.toggleTranscriptRailButton) {
     elements.toggleTranscriptRailButton.textContent = state.transcriptRailHidden
-      ? "Show transcript rail"
-      : "Hide transcript rail";
+      ? "Show"
+      : "Hide";
+    elements.toggleTranscriptRailButton.setAttribute(
+      "aria-label",
+      state.transcriptRailHidden ? "Show transcript rail" : "Hide transcript rail"
+    );
     elements.toggleTranscriptRailButton.classList.toggle(
       "is-active",
       state.transcriptRailHidden
@@ -233,8 +237,12 @@ function applyPlannerLayoutState() {
 
   if (elements.toggleAssistantRailButton) {
     elements.toggleAssistantRailButton.textContent = state.assistantRailHidden
-      ? "Show Planner AI rail"
-      : "Hide Planner AI rail";
+      ? "Show"
+      : "Hide";
+    elements.toggleAssistantRailButton.setAttribute(
+      "aria-label",
+      state.assistantRailHidden ? "Show Planner AI rail" : "Hide Planner AI rail"
+    );
     elements.toggleAssistantRailButton.classList.toggle(
       "is-active",
       state.assistantRailHidden
@@ -1933,68 +1941,9 @@ function renderGraph() {
 }
 
 function renderGraphTermBubbles() {
-  if (!elements.graphBubbles || !state.graphLayout) {
-    return;
+  if (elements.graphBubbles) {
+    elements.graphBubbles.innerHTML = "";
   }
-
-  elements.graphBubbles.innerHTML = "";
-
-  const groups = new Map();
-
-  state.graphRenderNodes.forEach((node) => {
-    if (!node.term || (node.state !== "completed" && node.state !== "in-progress")) {
-      return;
-    }
-
-    const position = state.graphLayout.positions[node.id];
-    if (!position) {
-      return;
-    }
-
-    if (!groups.has(node.term)) {
-      groups.set(node.term, []);
-    }
-
-    groups.get(node.term).push({
-      node,
-      position
-    });
-  });
-
-  [...groups.entries()].forEach(([term, items]) => {
-    const bounds = items.reduce(
-      (current, entry) => ({
-        left: Math.min(current.left, entry.position.x - 82),
-        top: Math.min(current.top, entry.position.y - 52),
-        right: Math.max(current.right, entry.position.x + 82),
-        bottom: Math.max(current.bottom, entry.position.y + 52)
-      }),
-      {
-        left: Number.POSITIVE_INFINITY,
-        top: Number.POSITIVE_INFINITY,
-        right: Number.NEGATIVE_INFINITY,
-        bottom: Number.NEGATIVE_INFINITY
-      }
-    );
-
-    if (!Number.isFinite(bounds.left)) {
-      return;
-    }
-
-    const bubble = document.createElement("article");
-    bubble.className = "planner-term-bubble";
-    bubble.style.left = `${bounds.left - 20}px`;
-    bubble.style.top = `${bounds.top - 28}px`;
-    bubble.style.width = `${bounds.right - bounds.left + 40}px`;
-    bubble.style.height = `${bounds.bottom - bounds.top + 56}px`;
-
-    const label = document.createElement("p");
-    label.className = "planner-term-bubble-label";
-    label.textContent = term;
-    bubble.append(label);
-
-    elements.graphBubbles.append(bubble);
-  });
 }
 
 function drawGraphEdges() {

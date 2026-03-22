@@ -112,26 +112,28 @@
                 Grounded in the 2025-2026 TAMU Computer Science BS plan plus the exported CSCE
                 advising pages and fast-track material in this repo.
               </p>
-              <div class="planner-rail-toggles" aria-label="Planner side rail controls">
-                <button id="planner-toggle-transcript-rail" class="result-action-button" type="button">
-                  Hide transcript rail
-                </button>
-                <button id="planner-toggle-assistant-rail" class="result-action-button" type="button">
-                  Hide Planner AI rail
-                </button>
-              </div>
             </div>
           </header>
 
           <main class="planner-layout planner-layout-curator">
             <section class="saved-section-card planner-panel planner-side-panel planner-transcript-panel">
               <div class="section-heading">
-                <p class="section-kicker">Transcript</p>
-                <h2>Import and review</h2>
-                <p class="history-summary">
-                  Review the parsed transcript before trusting the graph. Remove bad rows or add
-                  missing courses manually.
-                </p>
+                <div>
+                  <p class="section-kicker">Transcript</p>
+                  <h2>Import and review</h2>
+                  <p class="history-summary">
+                    Review the parsed transcript before trusting the graph. Remove bad rows or add
+                    missing courses manually.
+                  </p>
+                </div>
+                <button
+                  id="planner-toggle-transcript-rail"
+                  class="planner-rail-toggle result-action-button"
+                  type="button"
+                  aria-label="Hide transcript rail"
+                >
+                  Hide
+                </button>
               </div>
 
               <div class="planner-ingest-card">
@@ -297,12 +299,22 @@
 
             <section class="saved-section-card planner-panel planner-assistant-panel">
               <div class="planner-assistant-head">
-                <p class="section-kicker">Academic assistant</p>
-                <h2>Planner AI</h2>
-                <p class="history-summary">
-                  Ask for a next-semester schedule, fast-track path, emphasis strategy, or why a
-                  class is still blocked.
-                </p>
+                <div>
+                  <p class="section-kicker">Academic assistant</p>
+                  <h2>Planner AI</h2>
+                  <p class="history-summary">
+                    Ask for a next-semester schedule, fast-track path, emphasis strategy, or why a
+                    class is still blocked.
+                  </p>
+                </div>
+                <button
+                  id="planner-toggle-assistant-rail"
+                  class="planner-rail-toggle result-action-button"
+                  type="button"
+                  aria-label="Hide Planner AI rail"
+                >
+                  Hide
+                </button>
               </div>
 
               <section class="planner-chat-box">

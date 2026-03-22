@@ -72,16 +72,29 @@
 
       <div class="app-main">
         <header class="app-topbar">
-          <a class="app-topbar-brand" href="/" aria-label="The Curator home">
-            <img src="/compare-logo.svg" alt="" />
-            <span>The Curator</span>
-          </a>
+          <div class="compare-topbar-left">
+            <a class="app-topbar-brand" href="/" aria-label="The Curator home">
+              <img src="/compare-logo.svg" alt="" />
+              <span>The Curator</span>
+            </a>
 
-          <nav class="app-topbar-tabs" aria-label="Section tabs">
-            <a class="app-tab" href="/">Home</a>
-            <a class="app-tab" href="/planner.html">Planner</a>
-            <a class="app-tab is-active" href="/compare.html">AI Compare</a>
-          </nav>
+            <nav class="app-topbar-tabs" aria-label="Section tabs">
+              <a class="app-tab" href="/">Home</a>
+              <a class="app-tab" href="/planner.html">Planner</a>
+              <a class="app-tab is-active" href="/compare.html">AI Compare</a>
+            </nav>
+
+            <form class="app-quick-search compare-topbar-search" action="/" method="get">
+              <span class="material-symbols-outlined app-quick-search-icon">search</span>
+              <input
+                class="app-quick-search-input"
+                type="search"
+                name="q"
+                placeholder="Search 2,400+ archive courses..."
+                autocomplete="off"
+              />
+            </form>
+          </div>
 
           <div class="app-topbar-actions">
             <button class="app-icon-button" type="button" aria-label="Notifications">
@@ -94,150 +107,165 @@
           </div>
         </header>
 
-        <div class="page-shell page-shell-compare">
-          <main class="compare-layout compare-layout-curator">
-            <section class="saved-section-card compare-panel compare-sources-panel">
-              <div class="compare-panel-head">
+        <main class="compare-studio">
+          <aside class="compare-studio-rail">
+            <div class="compare-rail-head">
+              <h1>Source Library</h1>
+              <p>Manage comparison data</p>
+            </div>
+
+            <form id="compare-form" class="compare-rail-form">
+              <label class="compare-upload-card" for="compare-files">
+                <span class="material-symbols-outlined">upload_file</span>
+                <span>Upload syllabus (PDF)</span>
+              </label>
+              <input
+                id="compare-files"
+                name="compare-files"
+                class="compare-file-input"
+                type="file"
+                accept="application/pdf"
+                multiple
+              />
+
+              <label class="compare-url-input-shell" for="compare-urls">
+                <span class="material-symbols-outlined">link</span>
+                <textarea
+                  id="compare-urls"
+                  name="compare-urls"
+                  rows="3"
+                  placeholder="Paste syllabus URL..."
+                ></textarea>
+              </label>
+
+              <div class="compare-rail-toolbar">
                 <div>
-                  <p class="section-kicker">Section shortlist</p>
-                  <h1>Build the professor comparison set</h1>
-                  <p class="history-summary">
-                    Pull shortlisted instructor groups from Explore, add PDFs, or paste public
-                    URLs. Keep the chat on the right focused on the actual analysis.
+                  <p class="compare-rail-label">
+                    Active context (<span data-shortlist-count>0</span>)
+                  </p>
+                  <p id="compare-state" class="compare-helper">
+                    The first answer can take a bit longer because PDFs need to be processed.
                   </p>
                 </div>
-              </div>
-
-              <div class="compare-source-toolbar">
-                <p class="compare-helper">You can compare up to 5 sources at once.</p>
-                <button id="clear-queued-sources" class="result-action-button" type="button">
-                  Clear shortlist
+                <button id="clear-queued-sources" class="compare-clear-button" type="button">
+                  <span class="material-symbols-outlined">refresh</span>
                 </button>
               </div>
 
-              <div id="queued-sources-state" class="empty-state">
+              <div id="queued-sources-state" class="compare-rail-empty">
                 No shortlisted syllabi yet. From Explore, use “Shortlist professor” on any
                 grouped syllabus card.
               </div>
               <div id="queued-sources-list" class="compare-source-list" hidden></div>
 
-              <form id="compare-form" class="compare-form">
-                <label class="field-label" for="compare-files">Upload syllabus PDFs</label>
-                <input
-                  id="compare-files"
-                  name="compare-files"
-                  type="file"
-                  accept="application/pdf"
-                  multiple
-                />
-                <p class="compare-helper">
-                  Uploaded PDFs: 2 MB each, 3 MB total on hosted deployments. For bigger files,
-                  use a public syllabus URL or shortlist the syllabus from Explore instead.
-                </p>
-
-                <label class="field-label" for="compare-urls">Paste syllabus URLs</label>
-                <textarea
-                  id="compare-urls"
-                  name="compare-urls"
-                  rows="5"
-                  placeholder="One public syllabus URL per line"
-                ></textarea>
-                <p class="compare-helper">
-                  Public Howdy syllabus links and direct PDF URLs are the most reliable URL inputs.
-                </p>
-
-                <label class="field-label" for="compare-question">What should the AI compare?</label>
-                <textarea
-                  id="compare-question"
-                  name="compare-question"
-                  rows="5"
-                >Compare these syllabi for workload, grading breakdown, exams, projects, attendance, late work, and which section seems easiest to manage for a student with a heavy semester.</textarea>
-
-                <div class="compare-form-actions">
-                  <button id="compare-submit" class="compare-submit-button" type="submit">
-                    Compare syllabi
-                  </button>
-                  <p id="compare-state" class="compare-helper">
-                    The first answer can take a bit longer because PDFs need to be processed.
-                  </p>
+              <div class="compare-rail-history">
+                <p class="compare-rail-label">Recent analysis</p>
+                <div class="compare-history-list">
+                  <button class="compare-history-item" type="button">ECEN 350 Fall vs Spring</button>
+                  <button class="compare-history-item" type="button">MATH 308 • All sections</button>
                 </div>
-              </form>
-            </section>
+              </div>
+            </form>
 
-            <section class="saved-section-card compare-panel compare-result-panel compare-chat-panel">
-              <header class="compare-chat-header">
+            <div class="compare-rail-footer">
+              <div class="compare-rail-profile">
+                <div class="compare-rail-avatar">JR</div>
                 <div>
-                  <p class="section-kicker">Conversation</p>
-                  <h2>Syllabus insights</h2>
-                  <p class="history-summary">
-                    Run one comparison, then keep asking targeted follow-ups against the same model
-                    context.
-                  </p>
-                </div>
-
-                <div class="compare-chat-header-actions">
-                  <span class="compare-context-chip">Chat-style analysis</span>
-                </div>
-              </header>
-
-              <div class="compare-chat-status" aria-live="polite">
-                <img
-                  class="compare-logo compare-status-logo"
-                  src="/compare-logo.svg"
-                  alt="Syllabus Signal logo"
-                  width="52"
-                  height="52"
-                />
-                <div class="compare-status-copy">
-                  <p class="compare-status-label">Syllabus Signal</p>
-                  <p id="compare-status-text" class="compare-status-text">
-                    Ready for a new syllabus comparison.
-                  </p>
+                  <p class="compare-rail-profile-name">Class of 2025</p>
+                  <p class="compare-rail-profile-meta">Engineering Honors</p>
                 </div>
               </div>
+              <button class="compare-rail-settings" type="button" aria-label="Settings">
+                <span class="material-symbols-outlined">settings</span>
+              </button>
+            </div>
+          </aside>
 
-              <div class="compare-thread-shell">
-                <div id="compare-result-state" class="empty-state compare-thread-state">
-                  Add at least two shortlisted syllabus sources, then run a comparison.
-                </div>
-                <div id="compare-thread" class="compare-thread" hidden></div>
+          <section class="compare-studio-main">
+            <header class="compare-studio-header">
+              <div>
+                <h2>Syllabus Insights</h2>
+                <p id="compare-status-text" class="compare-studio-subtitle">
+                  Comparing shortlisted syllabi with the Curator comparison engine.
+                </p>
               </div>
+              <div class="compare-studio-header-actions">
+                <div class="compare-studio-avatars" aria-hidden="true">
+                  <span class="compare-avatar-chip">C</span>
+                  <span class="compare-avatar-chip is-accent">A</span>
+                </div>
+                <button class="compare-export-button" type="button">Export report</button>
+              </div>
+            </header>
 
-              <form id="compare-followup-form" class="compare-followup-form compare-chat-composer" hidden>
-                <div class="compare-composer-input">
-                  <label class="field-label" for="compare-followup-question">Follow-up question</label>
+            <div class="compare-studio-thread-wrap">
+              <div id="compare-result-state" class="compare-thread-state">
+                Add at least two shortlisted syllabus sources, then run a comparison.
+              </div>
+              <div id="compare-thread" class="compare-thread" hidden></div>
+            </div>
+
+            <form id="compare-followup-form" class="compare-studio-composer">
+              <button class="compare-composer-plus" type="button" id="compare-submit" aria-label="Add syllabus source">
+                <span class="material-symbols-outlined">add_circle</span>
+              </button>
+              <div class="compare-composer-fields">
+                <div id="compare-question-shell" class="compare-composer-shell">
+                  <label class="sr-only" for="compare-question">Initial compare question</label>
+                  <textarea
+                    id="compare-question"
+                    name="compare-question"
+                    form="compare-form"
+                    rows="1"
+                    placeholder="Compare the workload, flexibility, grading, and professor fit across these shortlisted syllabi..."
+                  >Compare these syllabi for workload, grading breakdown, exams, projects, attendance, late work, and which section seems easiest to manage for a student with a heavy semester.</textarea>
+                </div>
+
+                <div id="compare-followup-shell" class="compare-composer-shell" hidden>
+                  <label class="sr-only" for="compare-followup-question">Follow-up question</label>
                   <textarea
                     id="compare-followup-question"
                     name="compare-followup-question"
-                    rows="3"
-                    placeholder="Ask a follow-up like: Which syllabus has the harshest late-work policy?"
+                    rows="1"
+                    placeholder="Ask follow-up questions about these syllabi..."
                   ></textarea>
                 </div>
-                <div class="compare-composer-footer">
-                  <p id="compare-followup-state" class="compare-helper">
-                    Follow-ups reuse the same model context from the first comparison.
-                  </p>
-                  <button id="compare-followup-submit" class="compare-submit-button" type="submit">
-                    Ask follow-up
-                  </button>
-                </div>
-              </form>
-            </section>
-          </main>
-        </div>
+              </div>
+              <button
+                id="compare-followup-submit"
+                class="compare-send-button"
+                type="submit"
+                form="compare-form"
+                aria-label="Compare shortlisted syllabi"
+              >
+                <span class="material-symbols-outlined">send</span>
+              </button>
+            </form>
+
+            <div class="compare-studio-footer">
+              <p id="compare-followup-state">Powered by Academic Curator LLM-v4 • Verified TAMU Data</p>
+              <div class="compare-footer-links">
+                <a href="#">Privacy</a>
+                <a href="#">Terms</a>
+                <a href="#">Help</a>
+              </div>
+            </div>
+          </section>
+        </main>
       </div>
     </div>
 
     <template id="queued-source-template">
       <article class="compare-source-card">
-        <div class="compare-source-header">
+        <div class="compare-source-card-copy">
+          <span class="material-symbols-outlined compare-source-icon">description</span>
           <div class="compare-source-primary">
             <p class="result-code compare-source-course"></p>
             <h3 class="compare-source-label"></h3>
             <p class="compare-source-meta"></p>
           </div>
-          <button class="result-action-button compare-source-remove" type="button">Remove</button>
         </div>
+        <button class="compare-source-remove" type="button" aria-label="Remove source">×</button>
       </article>
     </template>
 

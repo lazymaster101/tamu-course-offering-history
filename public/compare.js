@@ -17,6 +17,7 @@ const DEFAULT_FOLLOWUP_HELPER =
   "Follow-ups reuse the same model context from the first comparison.";
 const STRUCTURED_SECTION_TITLES = [
   "QUICK TAKE",
+  "SCORECARDS",
   "DOCUMENT SNAPSHOTS",
   "KEY DIFFERENCES",
   "RED FLAGS OR MISSING DETAILS",
@@ -49,6 +50,8 @@ const elements = {
   statusText: document.querySelector("#compare-status-text"),
   messageTemplate: document.querySelector("#compare-message-template"),
   followupForm: document.querySelector("#compare-followup-form"),
+  compareQuestionShell: document.querySelector("#compare-question-shell"),
+  followupQuestionShell: document.querySelector("#compare-followup-shell"),
   followupQuestion: document.querySelector("#compare-followup-question"),
   followupSubmit: document.querySelector("#compare-followup-submit"),
   followupState: document.querySelector("#compare-followup-state")
@@ -69,14 +72,29 @@ function logCompareUi(event, details = {}) {
   console.debug(COMPARE_UI_LOG_PREFIX, event, snapshot);
 }
 
-function setBusy(button, isBusy, idleLabel, busyLabel) {
+function setControlBusy(button, isBusy, busyLabel) {
+  if (!button) {
+    return;
+  }
+
   button.disabled = isBusy;
-  button.textContent = isBusy ? busyLabel : idleLabel;
+  button.classList.toggle("is-busy", isBusy);
+
+  if (busyLabel) {
+    button.setAttribute("aria-label", isBusy ? busyLabel : button.dataset.idleLabel || busyLabel);
+  }
 }
 
 function setHelper(node, message, isError = false) {
   node.textContent = message;
   node.classList.toggle("is-error", isError);
+}
+
+function formatMessageTimestamp() {
+  return new Intl.DateTimeFormat(undefined, {
+    hour: "numeric",
+    minute: "2-digit"
+  }).format(new Date());
 }
 
 function showEmptyTranscript(message) {
@@ -92,21 +110,30 @@ function showTranscript() {
   logCompareUi("show-thread");
 }
 
-function setTyping(isVisible, message) {
-  state.showTyping = isVisible;
-
+function syncStatusSubtitle() {
   if (!elements.statusText) {
-    renderConversation();
     return;
   }
 
-  if (isVisible) {
-    elements.statusText.textContent = message || "Reading syllabi and building the comparison.";
-  } else {
-    elements.statusText.textContent = state.previousResponseId
-      ? "Comparison context is loaded and ready for follow-up questions."
-      : "Ready for a new syllabus comparison.";
+  const sourceCount = getCompareSources().length;
+
+  if (state.previousResponseId) {
+    const comparedCount = state.lastDocuments.length || sourceCount || 2;
+    elements.statusText.textContent = `Comparing ${comparedCount} courses using Curator comparison engine.`;
+    return;
   }
+
+  if (sourceCount >= 2) {
+    elements.statusText.textContent = `Comparing ${sourceCount} courses using Curator comparison engine.`;
+    return;
+  }
+
+  elements.statusText.textContent = "Comparing shortlisted syllabi with the Curator comparison engine.";
+}
+
+function setTyping(isVisible) {
+  state.showTyping = isVisible;
+  syncStatusSubtitle();
   renderConversation();
 }
 
@@ -270,25 +297,132 @@ function parseDocumentSnapshotsSection(body) {
   return cards;
 }
 
+function parseScorecardsSection(body) {
+  const lines = String(body ?? "").split(/\r?\n/);
+  const cards = [];
+  let currentCard = null;
+
+  lines.forEach((line) => {
+    const categoryMatch = line.trim().match(/^Category:\s*(.+)$/i);
+    if (categoryMatch) {
+      currentCard = {
+        title: categoryMatch[1].trim(),
+        rows: []
+      };
+      cards.push(currentCard);
+      return;
+    }
+
+    const scoreMatch = line.trim().match(/^-+\s*(Document\s+\d+|[^:]+):\s*(\d{1,3})\/100\s*[—-]\s*(.+)$/i);
+    if (scoreMatch && currentCard) {
+      currentCard.rows.push({
+        label: scoreMatch[1].trim(),
+        score: Math.max(0, Math.min(100, Number(scoreMatch[2]))),
+        note: scoreMatch[3].trim()
+      });
+      return;
+    }
+
+    if (!line.trim()) {
+      return;
+    }
+
+    if (currentCard) {
+      currentCard.rows.push({
+        label: "Note",
+        score: null,
+        note: line.trim()
+      });
+    }
+  });
+
+  return cards;
+}
+
+function createScoreBar(score) {
+  const track = document.createElement("div");
+  track.className = "compare-score-track";
+  const fill = document.createElement("div");
+  fill.className = "compare-score-fill";
+  fill.style.width = `${Math.max(0, Math.min(100, Number(score ?? 0)))}%`;
+  track.append(fill);
+  return track;
+}
+
 function renderSectionBlock(section) {
   const sectionNode = document.createElement("section");
   sectionNode.className = "compare-section-card";
 
-  const heading = document.createElement("div");
-  heading.className = "compare-section-heading";
-  const eyebrow = document.createElement("p");
-  eyebrow.className = "section-kicker";
-  eyebrow.textContent = "AI Section";
+  const titleRow = document.createElement("div");
+  titleRow.className = "compare-section-title-row";
+
   const title = document.createElement("h3");
   title.className = "compare-section-title";
-  title.textContent = section.title;
-  heading.append(eyebrow, title);
-  sectionNode.append(heading);
+  title.textContent = section.title === "SCORECARDS" ? "Scored Comparison" : toTitleCase(section.title);
+
+  if (section.title === "QUICK TAKE") {
+    const icon = document.createElement("div");
+    icon.className = "compare-section-icon";
+    icon.innerHTML = '<span class="material-symbols-outlined">auto_awesome</span>';
+    titleRow.append(icon);
+  }
+
+  titleRow.append(title);
+  sectionNode.append(titleRow);
 
   const body = document.createElement("div");
   body.className = "compare-section-body";
 
-  if (section.title === "DOCUMENT SNAPSHOTS") {
+  if (section.title === "SCORECARDS") {
+    const cards = parseScorecardsSection(section.body);
+    const grid = document.createElement("div");
+    grid.className = "compare-score-grid";
+
+    cards.forEach((card) => {
+      const cardNode = document.createElement("article");
+      cardNode.className = "compare-score-card";
+      const cardTitle = document.createElement("div");
+      cardTitle.className = "compare-score-card-title";
+      cardTitle.textContent = card.title;
+      cardNode.append(cardTitle);
+
+      card.rows.forEach((row) => {
+        const rowNode = document.createElement("div");
+        rowNode.className = "compare-score-row";
+
+        const rowTop = document.createElement("div");
+        rowTop.className = "compare-score-row-top";
+        const label = document.createElement("span");
+        label.className = "compare-score-label";
+        label.textContent = row.label;
+        rowTop.append(label);
+
+        if (Number.isFinite(row.score)) {
+          const score = document.createElement("span");
+          score.className = "compare-score-value";
+          score.textContent = `${row.score}/100`;
+          rowTop.append(score);
+        }
+
+        rowNode.append(rowTop);
+
+        if (Number.isFinite(row.score)) {
+          rowNode.append(createScoreBar(row.score));
+        }
+
+        const note = document.createElement("p");
+        note.className = "compare-score-note";
+        note.textContent = row.note;
+        rowNode.append(note);
+
+        cardNode.append(rowNode);
+      });
+
+      grid.append(cardNode);
+    });
+
+    body.append(grid);
+  } else if (section.title === "DOCUMENT SNAPSHOTS") {
     const cards = parseDocumentSnapshotsSection(section.body);
     const grid = document.createElement("div");
     grid.className = "compare-document-grid";
@@ -326,6 +460,12 @@ function renderSectionBlock(section) {
   return sectionNode;
 }
 
+function toTitleCase(text) {
+  return String(text ?? "")
+    .toLowerCase()
+    .replace(/\b\w/g, (character) => character.toUpperCase());
+}
+
 function renderAssistantMessageCard(message) {
   const card = document.createElement("div");
   card.className = "compare-assistant-response";
@@ -358,7 +498,21 @@ function renderAssistantMessageCard(message) {
     return card;
   }
 
-  structured.sections.forEach((section) => {
+  const quickTake = structured.sections.find((section) => section.title === "QUICK TAKE");
+  const scorecards = structured.sections.find((section) => section.title === "SCORECARDS");
+  const remainingSections = structured.sections.filter(
+    (section) => section.title !== "QUICK TAKE" && section.title !== "SCORECARDS"
+  );
+
+  if (quickTake) {
+    card.append(renderSectionBlock(quickTake));
+  }
+
+  if (scorecards) {
+    card.append(renderSectionBlock(scorecards));
+  }
+
+  remainingSections.forEach((section) => {
     card.append(renderSectionBlock(section));
   });
 
@@ -386,6 +540,10 @@ function renderMessage(message) {
       card.append(meta);
     }
   } else {
+    const avatar = document.createElement("div");
+    avatar.className = "compare-ai-avatar";
+    avatar.innerHTML = '<span class="material-symbols-outlined">auto_awesome</span>';
+    article.prepend(avatar);
     card.append(renderAssistantMessageCard(message));
   }
 
@@ -396,15 +554,9 @@ function renderTypingMessage() {
   const message = document.createElement("article");
   message.className = "compare-message is-assistant is-thinking";
 
-  const meta = document.createElement("div");
-  meta.className = "compare-message-meta";
-  const role = document.createElement("span");
-  role.className = "compare-message-role";
-  role.textContent = "Compare AI";
-  const badge = document.createElement("span");
-  badge.className = "compare-message-badge";
-  badge.textContent = "Thinking";
-  meta.append(role, badge);
+  const avatar = document.createElement("div");
+  avatar.className = "compare-ai-avatar";
+  avatar.innerHTML = '<span class="material-symbols-outlined">auto_awesome</span>';
 
   const bubble = document.createElement("div");
   bubble.className = "compare-message-card compare-thinking-card";
@@ -421,7 +573,7 @@ function renderTypingMessage() {
   }
 
   bubble.append(dots);
-  message.append(meta, bubble);
+  message.append(avatar, bubble);
   elements.thread.append(message);
 }
 
@@ -473,6 +625,7 @@ function formatQueuedSourceMeta(source) {
 function renderQueuedSources() {
   const sources = getCompareSources();
   elements.queuedSourcesList.innerHTML = "";
+  syncStatusSubtitle();
 
   if (!sources.length) {
     elements.queuedSourcesState.hidden = false;
@@ -632,7 +785,11 @@ function resetConversationState() {
   state.messages = [];
   state.showTyping = false;
   logCompareUi("reset-conversation");
-  elements.followupForm.hidden = true;
+  elements.compareQuestionShell.hidden = false;
+  elements.followupQuestionShell.hidden = true;
+  elements.followupSubmit.setAttribute("form", "compare-form");
+  elements.followupSubmit.dataset.idleLabel = "Compare shortlisted syllabi";
+  elements.followupSubmit.setAttribute("aria-label", "Compare shortlisted syllabi");
   elements.followupQuestion.value = "";
   setTyping(false);
   setHelper(elements.followupState, DEFAULT_FOLLOWUP_HELPER);
@@ -649,7 +806,8 @@ async function handleCompareSubmit(event) {
   try {
     state.requestInFlight = true;
     resetConversationState();
-    setBusy(elements.compareSubmit, true, "Compare syllabi", "Comparing...");
+    setControlBusy(elements.compareSubmit, true, "Adding syllabus source");
+    setControlBusy(elements.followupSubmit, true, "Comparing shortlisted syllabi");
     setHelper(elements.compareState, "Preparing sources...");
 
     const items = await buildCompareItems();
@@ -661,9 +819,9 @@ async function handleCompareSubmit(event) {
       role: "user",
       badge: "Initial compare",
       content: displayPrompt,
-      meta: `${items.length} shortlisted syllabus sources selected for this comparison.`
+      meta: `Sent ${formatMessageTimestamp()}`
     });
-    setTyping(true, "Reading syllabi and building the comparison.");
+    setTyping(true);
 
     const payload = await postJson("/api/compare-syllabi", {
       items,
@@ -686,7 +844,11 @@ async function handleCompareSubmit(event) {
       documents: state.lastDocuments
     });
 
-    elements.followupForm.hidden = !state.previousResponseId;
+    elements.compareQuestionShell.hidden = Boolean(state.previousResponseId);
+    elements.followupQuestionShell.hidden = !state.previousResponseId;
+    elements.followupSubmit.removeAttribute("form");
+    elements.followupSubmit.dataset.idleLabel = "Ask follow-up";
+    elements.followupSubmit.setAttribute("aria-label", "Ask follow-up");
     logCompareUi("compare-finished", {
       compareStateText: elements.compareState.textContent
     });
@@ -705,7 +867,8 @@ async function handleCompareSubmit(event) {
     setHelper(elements.compareState, error.message, true);
   } finally {
     state.requestInFlight = false;
-    setBusy(elements.compareSubmit, false, "Compare syllabi", "Comparing...");
+    setControlBusy(elements.compareSubmit, false, "Add syllabus source");
+    setControlBusy(elements.followupSubmit, false, state.previousResponseId ? "Ask follow-up" : "Compare shortlisted syllabi");
   }
 }
 
@@ -730,16 +893,18 @@ async function handleFollowupSubmit(event) {
 
   try {
     state.requestInFlight = true;
-    setBusy(elements.followupSubmit, true, "Ask follow-up", "Asking...");
+    setControlBusy(elements.compareSubmit, true, "Adding syllabus source");
+    setControlBusy(elements.followupSubmit, true, "Asking follow-up");
     setHelper(elements.followupState, "Running follow-up...");
     elements.followupQuestion.value = "";
 
     addMessage({
       role: "user",
       badge: "Follow-up",
-      content: question
+      content: question,
+      meta: `Sent ${formatMessageTimestamp()}`
     });
-    setTyping(true, "Thinking through the follow-up against the saved comparison context.");
+    setTyping(true);
 
     const payload = await postJson("/api/compare-syllabi", {
       previousResponseId: state.previousResponseId,
@@ -772,7 +937,8 @@ async function handleFollowupSubmit(event) {
     setHelper(elements.followupState, error.message, true);
   } finally {
     state.requestInFlight = false;
-    setBusy(elements.followupSubmit, false, "Ask follow-up", "Asking...");
+    setControlBusy(elements.compareSubmit, false, "Add syllabus source");
+    setControlBusy(elements.followupSubmit, false, "Ask follow-up");
   }
 }
 
@@ -792,6 +958,9 @@ elements.followupQuestion.addEventListener("keydown", handleEnterToSubmit);
 elements.clearQueuedSources.addEventListener("click", () => {
   clearCompareSources();
 });
+elements.compareSubmit.addEventListener("click", () => {
+  elements.compareFiles.click();
+});
 
 startSavedCourseBadgeSync();
 renderQueuedSources();
@@ -799,4 +968,10 @@ subscribeToCompareSources(renderQueuedSources);
 renderConversation();
 setHelper(elements.compareState, DEFAULT_COMPARE_HELPER);
 setHelper(elements.followupState, DEFAULT_FOLLOWUP_HELPER);
+elements.compareQuestionShell.hidden = false;
+elements.followupQuestionShell.hidden = true;
+elements.followupSubmit.setAttribute("form", "compare-form");
+elements.followupSubmit.setAttribute("aria-label", "Compare shortlisted syllabi");
+elements.compareSubmit.dataset.idleLabel = "Add syllabus source";
+elements.followupSubmit.dataset.idleLabel = "Compare shortlisted syllabi";
 logCompareUi("boot");

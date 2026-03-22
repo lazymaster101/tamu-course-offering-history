@@ -1089,8 +1089,8 @@ async function handleApi(request, response, url) {
     if (url.pathname === "/api/degree-plan") {
       const planId = url.searchParams.get("plan")?.trim() || "bs-cs-2025";
       jsonResponse(response, 200, {
-        plans: listDegreePlans(),
-        plan: getDegreePlan(planId)
+        plans: await listDegreePlans(),
+        plan: await getDegreePlan(planId)
       });
       return;
     }

@@ -86,8 +86,13 @@ const elements = {
   cartState: document.querySelector("#planner-cart-state"),
   cartList: document.querySelector("#planner-cart-list"),
   requiredSuggestions: document.querySelector("#planner-required-suggestions"),
+  requiredSuggestionLabel: document.querySelector("#planner-required-suggestions-label"),
+  electiveGroup: document.querySelector("#planner-elective-group"),
   electiveSuggestions: document.querySelector("#planner-elective-suggestions"),
+  electiveSuggestionLabel: document.querySelector("#planner-elective-suggestions-label"),
+  fastTrackGroup: document.querySelector("#planner-fasttrack-group"),
   fastTrackSuggestions: document.querySelector("#planner-fasttrack-suggestions"),
+  fastTrackSuggestionLabel: document.querySelector("#planner-fasttrack-suggestions-label"),
   buildScheduleButton: document.querySelector("#planner-build-schedule"),
   scheduleState: document.querySelector("#planner-schedule-state"),
   scheduleResult: document.querySelector("#planner-schedule-result"),
@@ -272,6 +277,22 @@ const VERIFIED_UCC_CATEGORIES = [
     codes: ["PHIL 111", "PHIL 240"]
   }
 ];
+
+function isCatalogBackedPlan() {
+  return state.plan?.supportLevel === "catalog-backed";
+}
+
+function getPlanUccCategories() {
+  return Array.isArray(state.plan?.uccCategories) && state.plan.uccCategories.length > 0
+    ? state.plan.uccCategories
+    : VERIFIED_UCC_CATEGORIES;
+}
+
+function getCatalogRequirementGroups() {
+  return Array.isArray(state.plan?.catalogRequirementGroups)
+    ? state.plan.catalogRequirementGroups
+    : [];
+}
 
 function setHelper(node, message, isError = false) {
   node.textContent = message;
@@ -558,6 +579,12 @@ function openManualModal(context = null) {
 function getRequiredCoreCategory(node) {
   const codes = [node.code, ...(node.matches ?? [])].filter(Boolean);
 
+  if (isCatalogBackedPlan()) {
+    const primaryCode = codes[0] ?? "";
+    const subject = primaryCode.split(" ")[0];
+    return subject ? `${subject} coursework` : "Catalog coursework";
+  }
+
   if (codes.some((code) => /^CHEM |^PHYS |^ENGR 216$/.test(code))) {
     return "Life and Physical Sciences";
   }
@@ -587,7 +614,7 @@ function getRequiredCoreCategory(node) {
 
 function getVerifiedUccCategory(code) {
   return (
-    VERIFIED_UCC_CATEGORIES.find((category) => category.codes.includes(code))?.title ??
+    getPlanUccCategories().find((category) => category.codes.includes(code))?.title ??
     "Other Core Curriculum"
   );
 }
@@ -620,7 +647,8 @@ function getCurrentPlannerPayload() {
     plan: {
       id: state.plan.id,
       title: state.plan.title,
-      catalog: state.plan.catalog
+      catalog: state.plan.catalog,
+      supportLevel: state.plan.supportLevel ?? "advising-enriched"
     },
     transcriptSummary: state.evaluation.transcriptSummary,
     completedCourses: transcript.completedCourses.map((course) => ({
@@ -682,6 +710,14 @@ function getCurrentPlannerPayload() {
         overallGpa: course.overallGpa,
         advisorReviewRequired: course.advisorReviewRequired
       })),
+    catalogRequirementGroups: getCatalogRequirementGroups().map((group) => ({
+      label: group.label,
+      category: group.category,
+      hours: group.hours,
+      year: group.year,
+      term: group.term,
+      note: group.note
+    })),
     scheduleRecommendation: getSelectedScheduleOption()
       ? {
           termDescription:
@@ -1459,44 +1495,55 @@ function renderSummaryGrid() {
     return;
   }
 
+  const catalogBacked = isCatalogBackedPlan();
   const fastTrackEligible = state.evaluation.fastTrackOptions.filter(
     (course) => course.state === "eligible"
   ).length;
   const fastTrackCandidate = state.evaluation.fastTrackOptions.filter(
     (course) => course.state === "candidate"
   ).length;
+  const catalogRequirementGroups = getCatalogRequirementGroups();
 
   const cards = [
     {
       type: "required-core",
-      label: "Required core",
+      label: catalogBacked ? "Named coursework" : "Required core",
       value: `${state.evaluation.flexibleProgress.requiredCore.completedCount}/${state.evaluation.flexibleProgress.requiredCore.totalCount}`,
       note:
         state.evaluation.flexibleProgress.requiredCore.inProgressCount > 0
           ? `${state.evaluation.flexibleProgress.requiredCore.inProgressCount} in progress`
-          : "Named catalog courses and required choices"
+          : catalogBacked
+            ? "Named catalog courses and simple choices"
+            : "Named catalog courses and required choices"
     },
     {
       type: "verified-ucc",
       label: "Verified UCC hours",
       value: `${state.evaluation.flexibleProgress.verifiedUccHours}/${state.plan.verifiedUccHoursTarget}`,
-      note: "Partial verification only"
+      note: catalogBacked ? "Catalog-backed verification" : "Partial verification only"
     },
     {
       type: "tracked-electives",
-      label: "Tracked electives",
-      value: `${state.evaluation.flexibleProgress.trackedElectiveHours}/${state.plan.trackedElectiveHoursTarget}`,
-      note:
-        state.evaluation.flexibleProgress.activeTrackedElectiveHours >
-        state.evaluation.flexibleProgress.trackedElectiveHours
+      label: catalogBacked ? "Catalog options" : "Tracked electives",
+      value: catalogBacked
+        ? `${catalogRequirementGroups.length} groups`
+        : `${state.evaluation.flexibleProgress.trackedElectiveHours}/${state.plan.trackedElectiveHoursTarget}`,
+      note: catalogBacked
+        ? "Flexible slots and advisor-reviewed requirements"
+        : state.evaluation.flexibleProgress.activeTrackedElectiveHours >
+            state.evaluation.flexibleProgress.trackedElectiveHours
           ? `${state.evaluation.flexibleProgress.activeTrackCoverage.length} track(s) covered or in progress`
           : `${state.evaluation.flexibleProgress.trackCoverage.length} track(s) covered`
     },
     {
       type: "fast-track",
-      label: "Fast track",
-      value: `${fastTrackEligible} ready`,
-      note: fastTrackCandidate ? `${fastTrackCandidate} more need advisor review` : "No extra review candidates"
+      label: catalogBacked ? "Support level" : "Fast track",
+      value: catalogBacked ? "Catalog-backed" : `${fastTrackEligible} ready`,
+      note: catalogBacked
+        ? "Public TAMU catalog baseline"
+        : fastTrackCandidate
+          ? `${fastTrackCandidate} more need advisor review`
+          : "No extra review candidates"
     }
   ];
 
@@ -1518,7 +1565,11 @@ function renderSummaryGrid() {
     note.className = "planner-stat-note";
     note.textContent = card.note;
     article.append(label, value, note);
-    if (card.type === "required-core" || card.type === "verified-ucc" || card.type === "tracked-electives") {
+    if (
+      card.type === "required-core" ||
+      card.type === "verified-ucc" ||
+      card.type === "tracked-electives"
+    ) {
       article.addEventListener("click", () => {
         openRequirementModal(card.type);
       });
@@ -1544,8 +1595,10 @@ function openRequirementModal(type) {
   elements.requirementModalBody.innerHTML = "";
 
   if (type === "required-core") {
-    elements.requirementModalKicker.textContent = "Required core";
-    elements.requirementModalTitle.textContent = "Satisfied vs remaining CS BS core";
+    elements.requirementModalKicker.textContent = isCatalogBackedPlan()
+      ? "Named coursework"
+      : "Required core";
+    elements.requirementModalTitle.textContent = `Satisfied vs remaining ${state.plan?.title ?? "degree"} coursework`;
 
     const groupedNodes = new Map();
     state.evaluation.graphNodes.forEach((node) => {
@@ -1610,11 +1663,12 @@ function openRequirementModal(type) {
 
     const note = document.createElement("p");
     note.className = "planner-modal-copy";
-    note.textContent =
-      "This remains advisory. The planner only verifies the common public UCC course matches wired into this first CS-first version.";
+    note.textContent = isCatalogBackedPlan()
+      ? "This remains advisory. UCC verification is driven by the public TAMU core-curriculum catalog and your transcript matches."
+      : "This remains advisory. The planner only verifies the common public UCC course matches wired into this first CS-first version.";
     elements.requirementModalBody.append(note);
 
-    VERIFIED_UCC_CATEGORIES.forEach((category) => {
+    getPlanUccCategories().forEach((category) => {
       appendModalSection(
         elements.requirementModalBody,
         `${category.title} · Verified now (${satisfied.filter((code) => category.codes.includes(code)).length})`,
@@ -1628,6 +1682,32 @@ function openRequirementModal(type) {
         remaining
           .filter((code) => category.codes.includes(code))
           .map((code) => createModalItem(code, "No verified transcript match yet"))
+      );
+    });
+
+    return;
+  }
+
+  if (isCatalogBackedPlan()) {
+    elements.requirementModalKicker.textContent = "Catalog options";
+    elements.requirementModalTitle.textContent = "Flexible catalog requirements and advisor review";
+
+    const note = document.createElement("p");
+    note.className = "planner-modal-copy";
+    note.textContent =
+      "These flexible slots come from the public TAMU catalog. They are useful for planning, but department advising may still narrow the exact approved choices.";
+    elements.requirementModalBody.append(note);
+
+    getCatalogRequirementGroups().forEach((group) => {
+      appendModalSection(
+        elements.requirementModalBody,
+        `${group.label} · ${group.hours || 0} hr`,
+        [
+          createModalItem(
+            `${group.year} ${group.term}`.trim(),
+            group.note || group.category || "Advisor review recommended"
+          )
+        ]
       );
     });
 
@@ -2331,6 +2411,13 @@ function appendSuggestionButton(container, config) {
   container.append(card);
 }
 
+function appendSuggestionNote(container, message) {
+  const note = document.createElement("p");
+  note.className = "planner-suggestion-note";
+  note.textContent = message;
+  container.append(note);
+}
+
 function renderSuggestions() {
   elements.requiredSuggestions.innerHTML = "";
   elements.electiveSuggestions.innerHTML = "";
@@ -2338,6 +2425,29 @@ function renderSuggestions() {
 
   if (!state.evaluation) {
     return;
+  }
+
+  const catalogBacked = isCatalogBackedPlan();
+  const catalogRequirementGroups = getCatalogRequirementGroups();
+
+  if (elements.requiredSuggestionLabel) {
+    elements.requiredSuggestionLabel.textContent = catalogBacked
+      ? "Named catalog coursework"
+      : "Required core classes";
+  }
+
+  if (elements.electiveSuggestionLabel) {
+    elements.electiveSuggestionLabel.textContent = catalogBacked
+      ? "Flexible catalog requirements"
+      : "Tracked electives";
+  }
+
+  if (elements.fastTrackSuggestionLabel) {
+    elements.fastTrackSuggestionLabel.textContent = "Fast-track opportunities";
+  }
+
+  if (elements.fastTrackGroup) {
+    elements.fastTrackGroup.hidden = catalogBacked;
   }
 
   state.evaluation.eligibleRequiredCourses.forEach((node) => {
@@ -2365,42 +2475,63 @@ function renderSuggestions() {
     });
   });
 
-  state.evaluation.trackedElectiveSuggestions.forEach((course) => {
-    appendSuggestionButton(elements.electiveSuggestions, {
-      code: course.code,
-      title: course.title,
-      meta:
-        course.inCart
-          ? `${course.track} · Already in your semester graph`
-          : course.state === "locked"
-            ? `${course.track} · Missing ${course.missingPrereqs.join(", ")}`
-            : course.state === "review"
-              ? `${course.track} · Advisor review recommended`
-              : course.missingTrackCoverage
-                ? `${course.track} · Helps cover a missing track`
-                : `${course.track} · Ready to consider`,
-      source: "tracked-elective",
-      badge: course.track,
-      badgeClass: course.state === "review" ? "planner-mini-badge-warning" : ""
-    });
-  });
-
-  state.evaluation.fastTrackOptions
-    .filter((course) => course.state === "eligible" || course.state === "candidate")
-    .slice(0, 12)
-    .forEach((course) => {
-      appendSuggestionButton(elements.fastTrackSuggestions, {
-        code: course.graduateCode,
-        title: `${course.title} ↔ ${course.undergraduateCode}`,
+  if (catalogBacked) {
+    if (catalogRequirementGroups.length === 0) {
+      appendSuggestionNote(
+        elements.electiveSuggestions,
+        "No flexible catalog requirement groups were parsed for this major."
+      );
+    } else {
+      catalogRequirementGroups.slice(0, 10).forEach((group) => {
+        appendSuggestionNote(
+          elements.electiveSuggestions,
+          `${group.label} · ${group.hours || 0} hr · ${group.note || group.category || "Advisor review recommended"}`
+        );
+      });
+    }
+  } else {
+    state.evaluation.trackedElectiveSuggestions.forEach((course) => {
+      appendSuggestionButton(elements.electiveSuggestions, {
+        code: course.code,
+        title: course.title,
         meta:
-          course.state === "eligible"
-            ? `Fast track ready · GPA ${course.overallGpa.toFixed(3)}`
-            : `Candidate only · advisor review still needed`,
-        source: "fast-track",
-        badge: course.state === "eligible" ? "Fast track" : "Review",
-        badgeClass: course.state === "eligible" ? "planner-mini-badge-fasttrack" : "planner-mini-badge-warning"
+          course.inCart
+            ? `${course.track} · Already in your semester graph`
+            : course.state === "locked"
+              ? `${course.track} · Missing ${course.missingPrereqs.join(", ")}`
+              : course.state === "review"
+                ? `${course.track} · Advisor review recommended`
+                : course.missingTrackCoverage
+                  ? `${course.track} · Helps cover a missing track`
+                  : `${course.track} · Ready to consider`,
+        source: "tracked-elective",
+        badge: course.track,
+        badgeClass: course.state === "review" ? "planner-mini-badge-warning" : ""
       });
     });
+  }
+
+  if (!catalogBacked) {
+    state.evaluation.fastTrackOptions
+      .filter((course) => course.state === "eligible" || course.state === "candidate")
+      .slice(0, 12)
+      .forEach((course) => {
+        appendSuggestionButton(elements.fastTrackSuggestions, {
+          code: course.graduateCode,
+          title: `${course.title} ↔ ${course.undergraduateCode}`,
+          meta:
+            course.state === "eligible"
+              ? `Fast track ready · GPA ${course.overallGpa.toFixed(3)}`
+              : `Candidate only · advisor review still needed`,
+          source: "fast-track",
+          badge: course.state === "eligible" ? "Fast track" : "Review",
+          badgeClass:
+            course.state === "eligible"
+              ? "planner-mini-badge-fasttrack"
+              : "planner-mini-badge-warning"
+        });
+      });
+  }
 }
 
 function createScheduleFlag(text, tone = "") {

@@ -436,9 +436,15 @@ export function evaluatePlannerState(plan, transcript, plannedCourseCodes = []) 
     eligibleRequiredCourses,
     trackedElectiveSuggestions,
     fastTrackOptions,
-    warnings: [
-      "UCC, emphasis-area, and minor validation are advisory in this first version.",
-      "Tracked-elective prerequisites are only auto-checked where the underlying source material made them explicit."
-    ]
+    warnings:
+      plan.supportLevel === "catalog-backed"
+        ? [
+            "This major is running in catalog-backed mode. Named required coursework is reliable, but flexible elective buckets still need advisor review.",
+            "Catalog prerequisite parsing is best-effort and only uses public TAMU catalog data."
+          ]
+        : [
+            "UCC, emphasis-area, and minor validation are advisory in this first version.",
+            "Tracked-elective prerequisites are only auto-checked where the underlying source material made them explicit."
+          ]
   };
 }

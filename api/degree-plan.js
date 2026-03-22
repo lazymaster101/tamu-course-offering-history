@@ -34,13 +34,13 @@ export default {
         planId
       });
 
-      const plans = listDegreePlans();
+      const plans = await listDegreePlans();
       console.log("[degree-plan] listDegreePlans complete", {
         planCount: plans.length,
         elapsedMs: Date.now() - startedAt
       });
 
-      const plan = getDegreePlan(planId);
+      const plan = await getDegreePlan(planId);
       console.log("[degree-plan] getDegreePlan complete", {
         planId: plan.id,
         nodeCount: Array.isArray(plan.graphNodes) ? plan.graphNodes.length : 0,

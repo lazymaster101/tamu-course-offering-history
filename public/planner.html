@@ -97,20 +97,20 @@
         <div class="page-shell page-shell-planner">
           <header class="planner-page-head">
             <div class="planner-page-copy">
-              <p class="eyebrow">CS-first degree planner</p>
-              <h1>Transcript-driven planning, with fast-track built in.</h1>
+              <p class="eyebrow">Degree planner</p>
+              <h1>Transcript-driven planning, major by major.</h1>
               <p class="lede">
-                Upload an unofficial transcript, map your CS degree state, stress-test a next
+                Upload an unofficial transcript, map your degree state, stress-test a next
                 semester graph against prerequisites, and ask the planner AI what the best next move
-                is.
+                is. Computer Science stays advising-enriched; other majors run in catalog-backed mode.
               </p>
             </div>
 
             <div class="planner-page-note">
               <p class="field-label">Current scope</p>
               <p>
-                Grounded in the 2025-2026 TAMU Computer Science BS plan plus the exported CSCE
-                advising pages and fast-track material in this repo.
+                Uses the 2025-2026 public TAMU catalog for all supported majors. Computer Science
+                also layers in the exported CSCE advising pages and fast-track material in this repo.
               </p>
             </div>
           </header>
@@ -219,17 +219,17 @@
 
                 <div class="planner-suggestion-stack">
                   <div class="planner-suggestion-group">
-                    <p class="planner-suggestion-label">Required core classes</p>
+                    <p id="planner-required-suggestions-label" class="planner-suggestion-label">Required core classes</p>
                     <div id="planner-required-suggestions" class="planner-suggestion-list"></div>
                   </div>
 
-                  <div class="planner-suggestion-group">
-                    <p class="planner-suggestion-label">Tracked electives</p>
+                  <div id="planner-elective-group" class="planner-suggestion-group">
+                    <p id="planner-elective-suggestions-label" class="planner-suggestion-label">Tracked electives</p>
                     <div id="planner-elective-suggestions" class="planner-suggestion-list"></div>
                   </div>
 
-                  <div class="planner-suggestion-group">
-                    <p class="planner-suggestion-label">Fast-track opportunities</p>
+                  <div id="planner-fasttrack-group" class="planner-suggestion-group">
+                    <p id="planner-fasttrack-suggestions-label" class="planner-suggestion-label">Fast-track opportunities</p>
                     <div id="planner-fasttrack-suggestions" class="planner-suggestion-list"></div>
                   </div>
                 </div>

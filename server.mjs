@@ -3,6 +3,7 @@ import { mkdir, readFile, stat, writeFile } from "node:fs/promises";
 import { createServer } from "node:http";
 import { request as httpsRequest } from "node:https";
 import { dirname, extname, join, resolve, sep } from "node:path";
+import { brotliDecompressSync, gunzipSync, inflateSync } from "node:zlib";
 import { getDegreePlan, listDegreePlans } from "./lib/degree-planner-data.mjs";
 import { compareSyllabi } from "./lib/openai-compare.mjs";
 import { chatWithDegreePlanner } from "./lib/openai-planner.mjs";
@@ -14,6 +15,17 @@ const CACHE_TTL_MS = 1000 * 60 * 60 * 12;
 const CONCURRENCY = 2;
 const REQUEST_RETRIES = 3;
 const RETRY_DELAY_MS = 350;
+const HOWDY_REQUEST_TIMEOUT_MS = Math.max(
+  Number.parseInt(String(process.env.HOWDY_REQUEST_TIMEOUT_MS ?? "30000"), 10) || 30000,
+  30000
+);
+const COURSE_SECTIONS_REQUEST_TIMEOUT_MS = Math.max(
+  Number.parseInt(String(process.env.COURSE_SECTIONS_REQUEST_TIMEOUT_MS ?? "45000"), 10) || 45000,
+  30000
+);
+const COURSE_SECTIONS_REQUEST_RETRIES = 2;
+const COURSE_SECTIONS_RETRY_DELAY_MS = 250;
+const COURSE_SECTIONS_RETRY_TIMEOUT_STEP_MS = 15000;
 const SYLLABUS_INFO_REQUEST_RETRIES = 1;
 const SYLLABUS_INFO_RETRY_DELAY_MS = 200;
 const SYLLABUS_INFO_TIMEOUT_MS = 2500;
@@ -119,6 +131,28 @@ function wait(delayMs) {
   });
 }
 
+function decodeResponseBuffer(buffer, contentEncoding) {
+  const encoding = String(contentEncoding ?? "").trim().toLowerCase();
+
+  if (!encoding || encoding === "identity") {
+    return buffer;
+  }
+
+  if (encoding === "gzip" || encoding === "x-gzip") {
+    return gunzipSync(buffer);
+  }
+
+  if (encoding === "deflate") {
+    return inflateSync(buffer);
+  }
+
+  if (encoding === "br") {
+    return brotliDecompressSync(buffer);
+  }
+
+  return buffer;
+}
+
 function shouldRetryHowdyRequest(error, attempt) {
   const statusCode = error.statusCode ?? 0;
   return attempt < REQUEST_RETRIES && (statusCode === 0 || statusCode === 429 || statusCode >= 500);
@@ -200,6 +234,97 @@ async function fetchHowdyJson(path, options = {}) {
   return response.json();
 }
 
+async function postHowdyJsonRaw(path, payload, timeoutMs = COURSE_SECTIONS_REQUEST_TIMEOUT_MS) {
+  const requestBody = JSON.stringify(payload);
+
+  for (let attempt = 0; attempt <= COURSE_SECTIONS_REQUEST_RETRIES; attempt += 1) {
+    try {
+      const requestTimeoutMs = timeoutMs + attempt * COURSE_SECTIONS_RETRY_TIMEOUT_STEP_MS;
+      const targetUrl = new URL(path, HOWDY_BASE_URL);
+      const responsePayload = await new Promise((resolvePromise, rejectPromise) => {
+        const request = httpsRequest(
+          targetUrl,
+          {
+            method: "POST",
+            agent: false,
+            headers: {
+              accept: "application/json",
+              "accept-encoding": "br, gzip, deflate",
+              connection: "close",
+              "content-type": "application/json; charset=utf-8",
+              "content-length": Buffer.byteLength(requestBody),
+              "user-agent": "tamu-course-offering-history/1.0"
+            }
+          },
+          (response) => {
+            const chunks = [];
+
+            response.on("data", (chunk) => {
+              chunks.push(chunk);
+            });
+
+            response.on("end", () => {
+              const rawBuffer = Buffer.concat(chunks);
+              const body = decodeResponseBuffer(
+                rawBuffer,
+                response.headers["content-encoding"]
+              ).toString("utf8");
+              const statusCode = response.statusCode ?? 0;
+
+              if (statusCode < 200 || statusCode >= 300) {
+                const error = new Error(
+                  `${statusCode} ${response.statusMessage ?? "Request failed"}: ${body.slice(0, 300)}`
+                );
+                error.statusCode = statusCode;
+                rejectPromise(error);
+                return;
+              }
+
+              try {
+                resolvePromise(JSON.parse(body));
+              } catch (error) {
+                rejectPromise(error);
+              }
+            });
+
+            response.on("error", rejectPromise);
+            response.on("aborted", () => {
+              const error = new Error("Howdy response stream was aborted.");
+              error.statusCode = 0;
+              rejectPromise(error);
+            });
+          }
+        );
+
+        request.setTimeout(requestTimeoutMs, () => {
+          const error = new Error(`Howdy request timed out after ${requestTimeoutMs} ms.`);
+          error.statusCode = 504;
+          request.destroy(error);
+        });
+
+        request.on("error", rejectPromise);
+        request.write(requestBody);
+        request.end();
+      });
+
+      return responsePayload;
+    } catch (error) {
+      console.warn(
+        `[course-sections] attempt ${attempt + 1} failed for ${path}: ${error.message}`
+      );
+      const canRetry =
+        attempt < COURSE_SECTIONS_REQUEST_RETRIES &&
+        shouldRetryHowdyRequest(error, attempt);
+
+      if (!canRetry) {
+        throw error;
+      }
+
+      await wait(COURSE_SECTIONS_RETRY_DELAY_MS * (attempt + 1));
+    }
+  }
+}
+
 function buildSimpleSyllabusUrl(termCode, crn) {
   return `https://tamu.simplesyllabus.com/ui/syllabus-redirect?type=html&attribute[4]=${encodeURIComponent(
     crn
@@ -240,6 +365,7 @@ async function fetchHowdyInfoJson(path) {
             method: "GET",
             headers: {
               accept: "application/json",
+              "accept-encoding": "br, gzip, deflate",
               connection: "close",
               "user-agent": "tamu-course-offering-history/1.0"
             }
@@ -252,7 +378,11 @@ async function fetchHowdyInfoJson(path) {
             });
 
             response.on("end", () => {
-              const body = Buffer.concat(chunks).toString("utf8");
+              const rawBuffer = Buffer.concat(chunks);
+              const body = decodeResponseBuffer(
+                rawBuffer,
+                response.headers["content-encoding"]
+              ).toString("utf8");
               const statusCode = response.statusCode ?? 0;
 
               if (statusCode < 200 || statusCode >= 300) {
@@ -272,6 +402,11 @@ async function fetchHowdyInfoJson(path) {
             });
 
             response.on("error", rejectPromise);
+            response.on("aborted", () => {
+              const error = new Error("Howdy syllabus info response was aborted.");
+              error.statusCode = 0;
+              rejectPromise(error);
+            });
           }
         );
 
@@ -474,17 +609,11 @@ async function fetchSectionsForTerm(termCode) {
     join(SECTIONS_CACHE_DIR, `${termCode}.json`),
     CACHE_TTL_MS,
     async () =>
-      fetchHowdyJson("/api/course-sections", {
-        method: "POST",
-        headers: {
-          "content-type": "application/json; charset=utf-8"
-        },
-        body: JSON.stringify({
-          startRow: 0,
-          endRow: 0,
-          termCode,
-          publicSearch: "Y"
-        })
+      postHowdyJsonRaw("/api/course-sections", {
+        startRow: 0,
+        endRow: 0,
+        termCode,
+        publicSearch: "Y"
       })
   );
 }

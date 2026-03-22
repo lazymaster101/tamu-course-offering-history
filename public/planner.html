@@ -223,6 +223,62 @@
                   </div>
                 </div>
               </section>
+
+              <section class="planner-card planner-card-schedule">
+                <div class="planner-card-head planner-card-head-schedule">
+                  <div>
+                    <p class="section-kicker">Schedule builder</p>
+                    <h3>Upcoming semester timetable</h3>
+                    <p class="history-summary">
+                      Uses your semester plan plus any shortlisted professors as preference signals.
+                      Ask Planner AI for a schedule, or build one directly here.
+                    </p>
+                  </div>
+                  <button id="planner-build-schedule" class="compare-submit-button" type="button">
+                    Build schedule
+                  </button>
+                </div>
+
+                <div id="planner-schedule-state" class="empty-state planner-card-state">
+                  Add courses to the semester plan, shortlist any professors you like, then ask
+                  Planner AI for a schedule or build one directly.
+                </div>
+
+                <div id="planner-schedule-result" class="planner-schedule-result" hidden>
+                  <div class="planner-schedule-summary-bar">
+                    <div>
+                      <p class="planner-schedule-term-label">Target term</p>
+                      <h4 id="planner-schedule-term">Upcoming term</h4>
+                    </div>
+                    <div id="planner-schedule-option-tabs" class="planner-schedule-option-tabs"></div>
+                  </div>
+
+                  <div id="planner-schedule-meta" class="planner-schedule-meta"></div>
+
+                  <div class="planner-schedule-board-shell">
+                    <div id="planner-schedule-board" class="planner-schedule-board"></div>
+                  </div>
+
+                  <div id="planner-schedule-flags" class="planner-schedule-flags"></div>
+
+                  <div class="planner-schedule-table-shell">
+                    <table class="planner-schedule-table">
+                      <thead>
+                        <tr>
+                          <th>Course</th>
+                          <th>CRN</th>
+                          <th>Section</th>
+                          <th>Instructor</th>
+                          <th>Mode</th>
+                          <th>Meetings</th>
+                          <th>Status</th>
+                        </tr>
+                      </thead>
+                      <tbody id="planner-schedule-table-body"></tbody>
+                    </table>
+                  </div>
+                </div>
+              </section>
             </section>
 
             <section class="saved-section-card planner-panel planner-assistant-panel">

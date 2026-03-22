@@ -1,5 +1,9 @@
 import { startSavedCourseBadgeSync } from "./page-shell.js";
 import {
+  getCompareSources,
+  subscribeToCompareSources
+} from "./compare-sources.js";
+import {
   formatSavedCourseCode,
   getSavedCourses,
   removeCourse,
@@ -13,6 +17,8 @@ import { parseTranscriptFile } from "./planner-transcript.js";
 const DEFAULT_PLANNER_QUESTION =
   "Build the best next semester plan for me, explain why, call out any blockers, and mention whether fast track looks realistic.";
 const PLANNER_STORAGE_KEY = "tamu-degree-planner-state-v1";
+const SCHEDULE_DAY_ORDER = ["Mon", "Tue", "Wed", "Thu", "Fri"];
+const SCHEDULE_CARD_TONES = ["tone-maroon", "tone-blue", "tone-gold", "tone-rose", "tone-green", "tone-plum"];
 
 const state = {
   plan: null,
@@ -43,7 +49,11 @@ const state = {
   manualCourseContext: null,
   plannerMessages: [],
   previousResponseId: null,
-  plannerRequestInFlight: false
+  plannerRequestInFlight: false,
+  scheduleRecommendation: null,
+  selectedScheduleId: null,
+  scheduleRequestInFlight: false,
+  scheduleFingerprint: null
 };
 
 const elements = {
@@ -72,6 +82,15 @@ const elements = {
   requiredSuggestions: document.querySelector("#planner-required-suggestions"),
   electiveSuggestions: document.querySelector("#planner-elective-suggestions"),
   fastTrackSuggestions: document.querySelector("#planner-fasttrack-suggestions"),
+  buildScheduleButton: document.querySelector("#planner-build-schedule"),
+  scheduleState: document.querySelector("#planner-schedule-state"),
+  scheduleResult: document.querySelector("#planner-schedule-result"),
+  scheduleTerm: document.querySelector("#planner-schedule-term"),
+  scheduleMeta: document.querySelector("#planner-schedule-meta"),
+  scheduleOptionTabs: document.querySelector("#planner-schedule-option-tabs"),
+  scheduleBoard: document.querySelector("#planner-schedule-board"),
+  scheduleFlags: document.querySelector("#planner-schedule-flags"),
+  scheduleTableBody: document.querySelector("#planner-schedule-table-body"),
   chatState: document.querySelector("#planner-chat-state"),
   chatScroll: document.querySelector("#planner-chat-scroll"),
   chatThread: document.querySelector("#planner-chat-thread"),
@@ -123,7 +142,10 @@ function writePlannerStorage() {
         transcriptCourses: state.transcriptCourses,
         cart: state.cart,
         plannerMessages: state.plannerMessages,
-        previousResponseId: state.previousResponseId
+        previousResponseId: state.previousResponseId,
+        scheduleRecommendation: state.scheduleRecommendation,
+        selectedScheduleId: state.selectedScheduleId,
+        scheduleFingerprint: state.scheduleFingerprint
       })
     );
   } catch {
@@ -146,6 +168,12 @@ function hydratePlannerStorage(snapshot) {
     ? snapshot.plannerMessages
     : [];
   state.previousResponseId = snapshot.previousResponseId ?? null;
+  state.scheduleRecommendation =
+    snapshot.scheduleRecommendation && typeof snapshot.scheduleRecommendation === "object"
+      ? snapshot.scheduleRecommendation
+      : null;
+  state.selectedScheduleId = snapshot.selectedScheduleId ?? null;
+  state.scheduleFingerprint = snapshot.scheduleFingerprint ?? null;
   syncCartFromSavedPlan();
 }
 
@@ -229,6 +257,65 @@ async function readJsonResponse(response, fallbackMessage) {
 
     throw new Error("Received a non-JSON response from the server.");
   }
+}
+
+function questionRequestsSchedule(questionText) {
+  return /\b(schedule|timetable|time table|prof|professor|instructor|section|builder)\b/iu.test(
+    String(questionText ?? "")
+  );
+}
+
+function getScheduleFingerprint() {
+  const planCodes = state.cart.map((item) => item.code).sort();
+  const shortlistIds = getCompareSources()
+    .map((source) => String(source.id ?? `${source.termCode ?? ""}:${source.crn ?? ""}:${source.label ?? ""}`))
+    .sort();
+
+  return JSON.stringify({
+    planCodes,
+    shortlistIds
+  });
+}
+
+function getSelectedScheduleOption() {
+  if (!state.scheduleRecommendation?.schedules?.length) {
+    return null;
+  }
+
+  return (
+    state.scheduleRecommendation.schedules.find(
+      (schedule) => schedule.id === state.selectedScheduleId
+    ) ?? state.scheduleRecommendation.schedules[0]
+  );
+}
+
+function buildSchedulePayload() {
+  return {
+    planCourses: state.cart.map((item) => ({
+      code: item.code,
+      title: item.title
+    })),
+    compareSources: getCompareSources(),
+    campus: "college-station"
+  };
+}
+
+function minuteLabel(totalMinutes) {
+  if (!Number.isFinite(totalMinutes)) {
+    return "TBA";
+  }
+
+  const hours24 = Math.floor(totalMinutes / 60);
+  const minutes = totalMinutes % 60;
+  const period = hours24 >= 12 ? "PM" : "AM";
+  const hours12 = hours24 % 12 || 12;
+  return `${hours12}:${String(minutes).padStart(2, "0")} ${period}`;
+}
+
+function setScheduleBusy(isBusy) {
+  state.scheduleRequestInFlight = isBusy;
+  elements.buildScheduleButton.disabled = isBusy;
+  elements.buildScheduleButton.textContent = isBusy ? "Building..." : "Build schedule";
 }
 
 function createBadge(text, extraClass = "") {
@@ -518,6 +605,27 @@ function getCurrentPlannerPayload() {
         overallGpa: course.overallGpa,
         advisorReviewRequired: course.advisorReviewRequired
       })),
+    scheduleRecommendation: getSelectedScheduleOption()
+      ? {
+          termDescription:
+            state.scheduleRecommendation?.targetTerm?.termDescription ?? "Upcoming term",
+          requestedCourseCount:
+            getSelectedScheduleOption().summary.requestedCourseCount,
+          scheduledCourseCount:
+            getSelectedScheduleOption().summary.scheduledCourseCount,
+          totalCredits: getSelectedScheduleOption().summary.totalCredits,
+          matchedPreferenceCount:
+            getSelectedScheduleOption().summary.matchedPreferenceCount,
+          unscheduledCourses: getSelectedScheduleOption().unscheduledCourses,
+          sections: getSelectedScheduleOption().sections.map((section) => ({
+            courseCode: section.courseCode,
+            crn: section.crn,
+            section: section.section,
+            instructors: section.instructors,
+            meetings: section.meetings
+          }))
+        }
+      : null,
     warnings: state.evaluation.warnings
   };
 }
@@ -1106,6 +1214,7 @@ function recomputePlannerState() {
   renderNodeDetail();
   renderCart();
   renderSuggestions();
+  renderScheduleRecommendation();
   renderPlannerChat();
   writePlannerStorage();
 }
@@ -2181,6 +2290,312 @@ function renderSuggestions() {
     });
 }
 
+function createScheduleFlag(text, tone = "") {
+  const chip = document.createElement("span");
+  chip.className = `planner-schedule-flag ${tone}`.trim();
+  chip.textContent = text;
+  return chip;
+}
+
+function renderScheduleBoard(schedule) {
+  elements.scheduleBoard.innerHTML = "";
+
+  const sections = schedule?.sections ?? [];
+  if (!sections.length) {
+    const empty = document.createElement("div");
+    empty.className = "empty-state";
+    empty.textContent = "No conflict-free timetable blocks were generated for this option.";
+    elements.scheduleBoard.append(empty);
+    return;
+  }
+
+  const allBlocks = sections.flatMap((section) => section.meetingBlocks ?? []);
+  const earliest = Math.min(
+    ...allBlocks.map((block) => block.startMinutes),
+    8 * 60
+  );
+  const latest = Math.max(
+    ...allBlocks.map((block) => block.endMinutes),
+    20 * 60
+  );
+  const displayStart = Math.floor(earliest / 30) * 30;
+  const displayEnd = Math.ceil(latest / 30) * 30;
+  const totalMinutes = Math.max(60, displayEnd - displayStart);
+
+  const layout = document.createElement("div");
+  layout.className = "planner-schedule-layout";
+
+  const axis = document.createElement("div");
+  axis.className = "planner-schedule-axis";
+  for (let minutes = displayStart; minutes <= displayEnd; minutes += 30) {
+    const label = document.createElement("span");
+    label.className = "planner-schedule-axis-label";
+    label.textContent = minuteLabel(minutes);
+    axis.append(label);
+  }
+  layout.append(axis);
+
+  const week = document.createElement("div");
+  week.className = "planner-schedule-week";
+
+  SCHEDULE_DAY_ORDER.forEach((dayLabel) => {
+    const column = document.createElement("div");
+    column.className = "planner-schedule-day";
+
+    const heading = document.createElement("div");
+    heading.className = "planner-schedule-day-head";
+    heading.textContent = dayLabel;
+    column.append(heading);
+
+    const lanes = document.createElement("div");
+    lanes.className = "planner-schedule-day-lanes";
+
+    for (let minutes = displayStart; minutes < displayEnd; minutes += 30) {
+      const row = document.createElement("div");
+      row.className = "planner-schedule-grid-line";
+      lanes.append(row);
+    }
+
+    const dayBlocks = sections.flatMap((section, index) =>
+      (section.meetingBlocks ?? [])
+        .filter((block) => block.day === dayLabel)
+        .map((block) => ({
+          ...block,
+          section,
+          toneClass: SCHEDULE_CARD_TONES[index % SCHEDULE_CARD_TONES.length]
+        }))
+    );
+
+    dayBlocks.forEach((block) => {
+      const node = document.createElement("article");
+      node.className = `planner-schedule-class ${block.toneClass}`;
+      const top = ((block.startMinutes - displayStart) / totalMinutes) * 100;
+      const height = ((block.endMinutes - block.startMinutes) / totalMinutes) * 100;
+      node.style.top = `${top}%`;
+      node.style.height = `${Math.max(height, 5)}%`;
+
+      const code = document.createElement("p");
+      code.className = "planner-schedule-class-code";
+      code.textContent = block.section.courseCode;
+
+      const sectionMeta = document.createElement("p");
+      sectionMeta.className = "planner-schedule-class-meta";
+      sectionMeta.textContent = `${block.section.section} • ${block.beginTime} - ${block.endTime}`;
+
+      const instructor = document.createElement("p");
+      instructor.className = "planner-schedule-class-meta";
+      instructor.textContent = block.section.instructors?.[0] ?? "Staff / TBD";
+
+      const room = document.createElement("p");
+      room.className = "planner-schedule-class-room";
+      room.textContent = [block.building, block.room].filter(Boolean).join(" ") || "Location TBD";
+
+      node.append(code, sectionMeta, instructor, room);
+      lanes.append(node);
+    });
+
+    column.append(lanes);
+    week.append(column);
+  });
+
+  layout.append(week);
+  elements.scheduleBoard.append(layout);
+}
+
+function renderScheduleTable(schedule) {
+  elements.scheduleTableBody.innerHTML = "";
+
+  if (!schedule?.sections?.length) {
+    return;
+  }
+
+  schedule.sections.forEach((section) => {
+    const row = document.createElement("tr");
+
+    const courseCell = document.createElement("td");
+    courseCell.innerHTML = `<strong>${section.courseCode}</strong><br>${section.courseTitle}`;
+
+    const crnCell = document.createElement("td");
+    crnCell.textContent = section.crn;
+
+    const sectionCell = document.createElement("td");
+    sectionCell.textContent = section.section;
+
+    const instructorCell = document.createElement("td");
+    instructorCell.textContent = section.instructors?.join(", ") || "Staff / TBD";
+
+    const modeCell = document.createElement("td");
+    modeCell.textContent = section.instructionalMethod || section.scheduleType || "TBA";
+
+    const meetingsCell = document.createElement("td");
+    meetingsCell.textContent = (section.meetings ?? [])
+      .map((meeting) => {
+        const dayLabel = meeting.days?.length ? meeting.days.join("/") : "TBA";
+        const timeLabel =
+          meeting.beginTime && meeting.endTime
+            ? `${meeting.beginTime} - ${meeting.endTime}`
+            : "TBA";
+        const roomLabel = [meeting.building, meeting.room].filter(Boolean).join(" ");
+        return `${dayLabel} ${timeLabel}${roomLabel ? ` · ${roomLabel}` : ""}`;
+      })
+      .join(" | ");
+
+    const statusCell = document.createElement("td");
+    statusCell.textContent = section.openForRegistration ? "Open" : "Closed";
+
+    row.append(
+      courseCell,
+      crnCell,
+      sectionCell,
+      instructorCell,
+      modeCell,
+      meetingsCell,
+      statusCell
+    );
+    elements.scheduleTableBody.append(row);
+  });
+}
+
+function renderScheduleRecommendation() {
+  const hasPlanCourses = state.cart.length > 0;
+  const schedule = getSelectedScheduleOption();
+  const isStale =
+    Boolean(state.scheduleRecommendation) && state.scheduleFingerprint !== getScheduleFingerprint();
+
+  elements.scheduleOptionTabs.innerHTML = "";
+  elements.scheduleMeta.innerHTML = "";
+  elements.scheduleFlags.innerHTML = "";
+  elements.scheduleTableBody.innerHTML = "";
+  elements.scheduleBoard.innerHTML = "";
+
+  if (!hasPlanCourses) {
+    elements.scheduleResult.hidden = true;
+    elements.scheduleState.hidden = false;
+    elements.scheduleState.textContent =
+      "Add courses to the semester plan first. The schedule builder uses those courses as the timetable target.";
+    return;
+  }
+
+  if (!state.scheduleRecommendation) {
+    elements.scheduleResult.hidden = true;
+    elements.scheduleState.hidden = false;
+    elements.scheduleState.textContent =
+      "Shortlist professors from Explore, then ask Planner AI for a schedule or use Build schedule here.";
+    return;
+  }
+
+  elements.scheduleState.hidden = true;
+  elements.scheduleResult.hidden = false;
+  elements.scheduleTerm.textContent =
+    state.scheduleRecommendation.targetTerm?.termDescription ?? "Upcoming term";
+
+  state.scheduleRecommendation.schedules?.forEach((option) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `planner-schedule-option${option.id === schedule?.id ? " is-active" : ""}`;
+    button.textContent = `${option.label} · ${option.summary.scheduledCourseCount}/${option.summary.requestedCourseCount}`;
+    button.addEventListener("click", () => {
+      state.selectedScheduleId = option.id;
+      writePlannerStorage();
+      renderScheduleRecommendation();
+    });
+    elements.scheduleOptionTabs.append(button);
+  });
+
+  if (!schedule) {
+    elements.scheduleState.hidden = false;
+    elements.scheduleState.textContent =
+      "No schedule options were generated from the current semester plan.";
+    elements.scheduleResult.hidden = true;
+    return;
+  }
+
+  const metaBits = [
+    `${schedule.summary.scheduledCourseCount}/${schedule.summary.requestedCourseCount} courses scheduled`,
+    `${schedule.summary.totalCredits} credit hours`,
+    `${schedule.summary.dayCount} class day${schedule.summary.dayCount === 1 ? "" : "s"}`,
+    `${schedule.summary.earliestStartLabel} to ${schedule.summary.latestEndLabel}`
+  ];
+
+  elements.scheduleMeta.append(createTokenList(metaBits, "No schedule summary"));
+
+  if (schedule.summary.matchedPreferenceCount > 0) {
+    elements.scheduleFlags.append(
+      createScheduleFlag(
+        `${schedule.summary.matchedPreferenceCount} shortlisted instructor match${schedule.summary.matchedPreferenceCount === 1 ? "" : "es"}`,
+        "is-preferred"
+      )
+    );
+  }
+
+  if (isStale) {
+    elements.scheduleFlags.append(
+      createScheduleFlag("Semester plan or shortlist changed. Rebuild this schedule.", "is-warning")
+    );
+  }
+
+  schedule.unscheduledCourses?.forEach((course) => {
+    elements.scheduleFlags.append(
+      createScheduleFlag(`${course.code}: ${course.reason}`, "is-subtle")
+    );
+  });
+
+  renderScheduleBoard(schedule);
+  renderScheduleTable(schedule);
+}
+
+async function buildScheduleRecommendation(reason = "manual") {
+  if (!state.cart.length) {
+    renderScheduleRecommendation();
+    return null;
+  }
+
+  setScheduleBusy(true);
+  setHelper(
+    elements.chatHelper,
+    reason === "question"
+      ? "Building a real next-term schedule from your semester plan and shortlisted professors..."
+      : "Building a real next-term schedule from your semester plan..."
+  );
+
+  try {
+    const response = await fetch("/api/build-schedule", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json"
+      },
+      body: JSON.stringify(buildSchedulePayload())
+    });
+    const payload = await readJsonResponse(
+      response,
+      "Could not build a schedule from the current semester plan."
+    );
+
+    if (!response.ok) {
+      throw new Error(payload.error || "Could not build a schedule.");
+    }
+
+    state.scheduleRecommendation = payload;
+    state.selectedScheduleId = payload.selectedScheduleId ?? payload.schedules?.[0]?.id ?? null;
+    state.scheduleFingerprint = getScheduleFingerprint();
+    setHelper(
+      elements.chatHelper,
+      payload.schedules?.length
+        ? `Built a ${payload.targetTerm?.termDescription ?? "next-term"} schedule from live public class-search sections. Planner AI can now explain the tradeoffs.`
+        : `Checked ${payload.targetTerm?.termDescription ?? "the next term"}, but no schedule options were generated from the current semester plan.`
+    );
+    renderScheduleRecommendation();
+    writePlannerStorage();
+    return payload;
+  } catch (error) {
+    console.error(error);
+    setHelper(elements.chatHelper, error.message || "Schedule builder failed.", true);
+    throw error;
+  } finally {
+    setScheduleBusy(false);
+  }
+}
+
 function createParagraph(className, text) {
   const paragraph = document.createElement("p");
   paragraph.className = className;
@@ -2403,11 +2818,6 @@ async function handleTranscriptUpload(file) {
 }
 
 async function sendPlannerQuestion(questionText) {
-  const payload = getCurrentPlannerPayload();
-  if (!payload) {
-    return;
-  }
-
   const question = String(questionText ?? "").trim() || DEFAULT_PLANNER_QUESTION;
   state.plannerMessages.push({
     role: "user",
@@ -2418,6 +2828,22 @@ async function sendPlannerQuestion(questionText) {
   renderPlannerChat();
   setBusy(elements.chatSubmit, true, "Ask planner", "Thinking...");
   setHelper(elements.chatHelper, "Planner is reasoning over your transcript, graph, and eligible options.");
+
+  if (questionRequestsSchedule(question) && state.cart.length > 0) {
+    try {
+      await buildScheduleRecommendation("question");
+    } catch {
+      // Keep going so the planner can still answer even if schedule generation fails.
+    }
+  }
+
+  const payload = getCurrentPlannerPayload();
+  if (!payload) {
+    state.plannerRequestInFlight = false;
+    setBusy(elements.chatSubmit, false, "Ask planner", "Thinking...");
+    renderPlannerChat();
+    return;
+  }
 
   try {
     const response = await fetch("/api/planner-chat", {
@@ -2518,6 +2944,18 @@ function attachEventListeners() {
     await sendPlannerQuestion(elements.chatQuestion.value);
   });
 
+  elements.buildScheduleButton.addEventListener("click", async () => {
+    if (state.scheduleRequestInFlight) {
+      return;
+    }
+
+    try {
+      await buildScheduleRecommendation("manual");
+    } catch {
+      // Error state is already surfaced in the UI helper.
+    }
+  });
+
   elements.graphCanvas.addEventListener("pointerdown", handleGraphPointerDown);
   elements.graphCanvas.addEventListener("pointermove", handleGraphPointerMove);
   elements.graphCanvas.addEventListener("pointerup", handleGraphPointerUp);
@@ -2565,6 +3003,10 @@ async function init() {
   subscribeToSavedCourses(() => {
     syncCartFromSavedPlan();
     recomputePlannerState();
+  });
+  subscribeToCompareSources(() => {
+    renderScheduleRecommendation();
+    writePlannerStorage();
   });
   const persisted = readPlannerStorage();
   await loadDegreePlan(persisted?.planId ?? "bs-cs-2025");

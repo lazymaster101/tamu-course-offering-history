@@ -6,6 +6,7 @@ import { dirname, extname, join, resolve, sep } from "node:path";
 import { getDegreePlan, listDegreePlans } from "./lib/degree-planner-data.mjs";
 import { compareSyllabi } from "./lib/openai-compare.mjs";
 import { chatWithDegreePlanner } from "./lib/openai-planner.mjs";
+import { buildScheduleRecommendation } from "./lib/schedule-builder.mjs";
 
 const PORT = Number(process.env.PORT ?? 4321);
 const HOWDY_BASE_URL = process.env.HOWDY_BASE_URL ?? "https://howdy.tamu.edu";
@@ -976,6 +977,24 @@ async function handleApi(request, response, url) {
         plannerState: payload?.plannerState,
         question: payload?.question,
         previousResponseId: payload?.previousResponseId
+      });
+
+      jsonResponse(response, 200, result);
+      return;
+    }
+
+    if (url.pathname === "/api/build-schedule") {
+      if (request.method !== "POST") {
+        jsonResponse(response, 405, { error: "Method Not Allowed" });
+        return;
+      }
+
+      const payload = await readJsonRequestBody(request);
+      const result = await buildScheduleRecommendation({
+        planCourses: payload?.planCourses,
+        compareSources: payload?.compareSources,
+        campus: payload?.campus,
+        requestedTermCode: payload?.termCode
       });
 
       jsonResponse(response, 200, result);

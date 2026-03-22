@@ -4613,3 +4613,355 @@ body[data-page="planner"] .planner-summary-grid {
 body[data-page="planner"] .planner-graph-shell {
   margin-top: 0;
 }
+
+/* Final schedule-builder + global scale overrides */
+
+html {
+  font-size: 15.25px !important;
+}
+
+body[data-page="planner"] .planner-page-head h1,
+body[data-page="compare"] .compare-page-head h1,
+body[data-page="saved"] .saved-page-head h1,
+.hero-copy h1 {
+  letter-spacing: -0.02em;
+}
+
+body[data-page="planner"] .planner-page-head h1 {
+  font-size: clamp(1.78rem, 2.2vw, 2.45rem);
+}
+
+body[data-page="planner"] .planner-page-head .lede,
+body[data-page="planner"] .planner-page-note p,
+body[data-page="planner"] .planner-transcript-panel .history-summary,
+body[data-page="planner"] .planner-main-panel .history-summary,
+body[data-page="planner"] .planner-assistant-head .history-summary {
+  font-size: 0.82rem;
+  line-height: 1.36;
+}
+
+body[data-page="planner"] .planner-transcript-panel .section-heading h2,
+body[data-page="planner"] .planner-main-panel .section-heading h2,
+body[data-page="planner"] .planner-assistant-head h2 {
+  font-size: 1.46rem;
+}
+
+.planner-card-schedule {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.planner-card-head-schedule {
+  align-items: start;
+}
+
+.planner-card-head-schedule .history-summary {
+  max-width: 54ch;
+}
+
+.planner-schedule-result {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.planner-schedule-summary-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.planner-schedule-term-label {
+  margin: 0 0 0.2rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.planner-schedule-summary-bar h4 {
+  margin: 0;
+  font-family: "Fraunces", Georgia, serif;
+  font-size: 1.3rem;
+  line-height: 1;
+}
+
+.planner-schedule-option-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 0.45rem;
+}
+
+.planner-schedule-option {
+  border: 1px solid rgba(80, 0, 0, 0.12);
+  border-radius: 999px;
+  background: rgba(255, 253, 250, 0.88);
+  color: var(--ink);
+  padding: 0.52rem 0.8rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.planner-schedule-option.is-active {
+  border-color: rgba(126, 36, 31, 0.4);
+  background: linear-gradient(135deg, rgba(80, 0, 0, 0.94), rgba(126, 36, 31, 0.92));
+  color: #fff8ef;
+}
+
+.planner-schedule-meta .planner-token-list {
+  gap: 0.45rem;
+}
+
+.planner-schedule-meta .planner-token {
+  background: rgba(80, 0, 0, 0.05);
+}
+
+.planner-schedule-flags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.45rem;
+}
+
+.planner-schedule-flag {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.45rem 0.7rem;
+  border-radius: 999px;
+  background: rgba(80, 0, 0, 0.07);
+  color: var(--accent);
+  font-size: 0.76rem;
+  line-height: 1.28;
+}
+
+.planner-schedule-flag.is-preferred {
+  background: rgba(26, 108, 86, 0.14);
+  color: #165a46;
+}
+
+.planner-schedule-flag.is-warning {
+  background: rgba(183, 98, 28, 0.14);
+  color: #8a4a16;
+}
+
+.planner-schedule-flag.is-subtle {
+  background: rgba(80, 0, 0, 0.08);
+  color: var(--muted);
+}
+
+.planner-schedule-board-shell {
+  overflow: auto;
+  border-radius: 1.1rem;
+  border: 1px solid rgba(80, 0, 0, 0.1);
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.85), rgba(251, 247, 243, 0.94)),
+    linear-gradient(145deg, rgba(127, 36, 31, 0.06), rgba(241, 199, 106, 0.08));
+}
+
+.planner-schedule-board {
+  min-width: 56rem;
+  padding: 0.85rem;
+}
+
+.planner-schedule-layout {
+  display: grid;
+  grid-template-columns: 4.2rem minmax(0, 1fr);
+  gap: 0.6rem;
+}
+
+.planner-schedule-axis {
+  display: grid;
+  grid-auto-rows: minmax(1.8rem, 1fr);
+  padding-top: 2rem;
+}
+
+.planner-schedule-axis-label {
+  display: flex;
+  align-items: start;
+  justify-content: flex-end;
+  padding-right: 0.35rem;
+  font-size: 0.72rem;
+  color: var(--muted);
+}
+
+.planner-schedule-week {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.55rem;
+}
+
+.planner-schedule-day {
+  display: grid;
+  grid-template-rows: auto minmax(34rem, 1fr);
+  gap: 0.35rem;
+  min-width: 0;
+}
+
+.planner-schedule-day-head {
+  border-radius: 0.7rem;
+  padding: 0.45rem 0.6rem;
+  background: linear-gradient(135deg, rgba(80, 0, 0, 0.96), rgba(126, 36, 31, 0.9));
+  color: #fff8ef;
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-align: center;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.planner-schedule-day-lanes {
+  position: relative;
+  display: grid;
+  grid-auto-rows: minmax(1.8rem, 1fr);
+  min-height: 34rem;
+  border-radius: 0.9rem;
+  overflow: hidden;
+  border: 1px solid rgba(80, 0, 0, 0.08);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.planner-schedule-grid-line {
+  border-bottom: 1px solid rgba(80, 0, 0, 0.06);
+}
+
+.planner-schedule-class {
+  position: absolute;
+  left: 0.25rem;
+  right: 0.25rem;
+  padding: 0.38rem 0.45rem 0.42rem;
+  border-radius: 0.85rem;
+  border-left: 4px solid rgba(80, 0, 0, 0.6);
+  box-shadow: 0 12px 24px rgba(80, 0, 0, 0.12);
+  overflow: hidden;
+}
+
+.planner-schedule-class::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.16) 0,
+    rgba(255, 255, 255, 0.16) 8px,
+    rgba(255, 255, 255, 0.04) 8px,
+    rgba(255, 255, 255, 0.04) 16px
+  );
+  pointer-events: none;
+}
+
+.planner-schedule-class > * {
+  position: relative;
+  z-index: 1;
+}
+
+.planner-schedule-class-code {
+  margin: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.planner-schedule-class-meta,
+.planner-schedule-class-room {
+  margin: 0.15rem 0 0;
+  font-size: 0.72rem;
+  line-height: 1.18;
+}
+
+.planner-schedule-class-room {
+  color: rgba(36, 23, 25, 0.72);
+}
+
+.planner-schedule-class.tone-maroon {
+  background: rgba(127, 36, 31, 0.14);
+  border-left-color: rgba(127, 36, 31, 0.85);
+}
+
+.planner-schedule-class.tone-blue {
+  background: rgba(36, 86, 176, 0.13);
+  border-left-color: rgba(36, 86, 176, 0.82);
+}
+
+.planner-schedule-class.tone-gold {
+  background: rgba(213, 139, 27, 0.16);
+  border-left-color: rgba(213, 139, 27, 0.82);
+}
+
+.planner-schedule-class.tone-rose {
+  background: rgba(204, 112, 112, 0.14);
+  border-left-color: rgba(186, 90, 90, 0.82);
+}
+
+.planner-schedule-class.tone-green {
+  background: rgba(36, 134, 101, 0.14);
+  border-left-color: rgba(36, 134, 101, 0.82);
+}
+
+.planner-schedule-class.tone-plum {
+  background: rgba(112, 80, 148, 0.14);
+  border-left-color: rgba(112, 80, 148, 0.82);
+}
+
+.planner-schedule-table-shell {
+  overflow: auto;
+  border-radius: 1rem;
+  border: 1px solid rgba(80, 0, 0, 0.1);
+  background: rgba(255, 255, 255, 0.78);
+}
+
+.planner-schedule-table {
+  width: 100%;
+  min-width: 52rem;
+  border-collapse: collapse;
+}
+
+.planner-schedule-table th,
+.planner-schedule-table td {
+  padding: 0.72rem 0.78rem;
+  border-bottom: 1px solid rgba(80, 0, 0, 0.08);
+  text-align: left;
+  vertical-align: top;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.planner-schedule-table th {
+  position: sticky;
+  top: 0;
+  background: linear-gradient(135deg, rgba(80, 0, 0, 0.96), rgba(126, 36, 31, 0.9));
+  color: #fff8ef;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  font-size: 0.69rem;
+  z-index: 1;
+}
+
+.planner-schedule-table td strong {
+  font-size: 0.84rem;
+}
+
+@media (max-width: 1200px) {
+  .planner-schedule-board {
+    min-width: 48rem;
+  }
+
+  .planner-schedule-week {
+    grid-template-columns: repeat(5, minmax(8rem, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .planner-schedule-summary-bar {
+    align-items: start;
+  }
+
+  .planner-schedule-option-tabs {
+    justify-content: flex-start;
+  }
+
+  .planner-schedule-board {
+    min-width: 42rem;
+  }
+}

@@ -5,6 +5,9 @@
     "api/search-courses.js": {
       "includeFiles": "data/catalog-index.json"
     },
+    "api/build-schedule.js": {
+      "includeFiles": "data/catalog-index.json"
+    },
     "api/degree-plan.js": {
       "includeFiles": "data/degree-plans.json"
     }

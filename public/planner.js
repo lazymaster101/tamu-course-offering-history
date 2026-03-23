@@ -228,11 +228,11 @@ function applyPlannerLayoutState() {
 
   if (elements.toggleTranscriptRailButton) {
     elements.toggleTranscriptRailButton.textContent = state.transcriptRailHidden
-      ? "Show"
+      ? "Open"
       : "Hide";
     elements.toggleTranscriptRailButton.setAttribute(
       "aria-label",
-      state.transcriptRailHidden ? "Show transcript rail" : "Hide transcript rail"
+      state.transcriptRailHidden ? "Open transcript rail" : "Hide transcript rail"
     );
     elements.toggleTranscriptRailButton.classList.toggle(
       "is-active",
@@ -242,11 +242,11 @@ function applyPlannerLayoutState() {
 
   if (elements.toggleAssistantRailButton) {
     elements.toggleAssistantRailButton.textContent = state.assistantRailHidden
-      ? "Show"
+      ? "Open"
       : "Hide";
     elements.toggleAssistantRailButton.setAttribute(
       "aria-label",
-      state.assistantRailHidden ? "Show Planner AI rail" : "Hide Planner AI rail"
+      state.assistantRailHidden ? "Open Planner AI rail" : "Hide Planner AI rail"
     );
     elements.toggleAssistantRailButton.classList.toggle(
       "is-active",

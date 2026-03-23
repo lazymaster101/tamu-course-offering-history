@@ -677,9 +677,11 @@ function getCurrentPlannerPayload() {
       courseNumber: source.courseNumber ?? null,
       termCode: source.termCode ?? null,
       termDescription: source.termDescription ?? null,
+      crn: source.crn ?? null,
       instructorLabel: source.instructorLabel ?? null,
       honorsLabel: source.honorsLabel ?? null,
-      sectionsLabel: source.sectionsLabel ?? null
+      sectionsLabel: source.sectionsLabel ?? null,
+      sourceKind: "shortlist"
     })),
     flexibleProgress: state.evaluation.flexibleProgress,
     eligibleRequiredCourses: state.evaluation.eligibleRequiredCourses.map((node) => ({
@@ -720,6 +722,7 @@ function getCurrentPlannerPayload() {
     })),
     scheduleRecommendation: getSelectedScheduleOption()
       ? {
+          termCode: state.scheduleRecommendation?.targetTerm?.termCode ?? null,
           termDescription:
             state.scheduleRecommendation?.targetTerm?.termDescription ?? "Upcoming term",
           requestedCourseCount:
@@ -732,10 +735,13 @@ function getCurrentPlannerPayload() {
           unscheduledCourses: getSelectedScheduleOption().unscheduledCourses,
           sections: getSelectedScheduleOption().sections.map((section) => ({
             courseCode: section.courseCode,
+            termCode: section.termCode ?? null,
             crn: section.crn,
             section: section.section,
             instructors: section.instructors,
-            meetings: section.meetings
+            meetings: section.meetings,
+            syllabusUrl: section.syllabusUrl ?? null,
+            preferredInstructorMatch: Boolean(section.preferredInstructorMatch)
           }))
         }
       : null,

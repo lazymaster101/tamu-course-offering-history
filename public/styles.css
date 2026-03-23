@@ -6245,3 +6245,93 @@ body[data-page="compare"] .compare-typing-dot {
     display: none;
   }
 }
+
+/* Final offer-history + planner rail cleanup */
+
+.history-card {
+  border-radius: 1.1rem;
+  overflow: visible;
+}
+
+.term-card {
+  border-radius: 0.9rem;
+}
+
+.term-summary {
+  padding: 0.3rem 0.55rem 0.85rem 0.15rem;
+  overflow: visible;
+}
+
+.term-summary-meta {
+  min-width: 0;
+  padding-top: 0.18rem;
+}
+
+.term-panel {
+  padding: 0.35rem 0.45rem 0.7rem 1.2rem;
+}
+
+.term-code {
+  font-size: 0.64rem;
+  letter-spacing: 0.22em;
+  padding-right: 0;
+}
+
+body[data-page="planner"] .planner-transcript-panel {
+  gap: 0.7rem;
+}
+
+body[data-page="planner"] .planner-transcript-summary {
+  grid-template-columns: 1fr !important;
+  gap: 0.5rem;
+}
+
+body[data-page="planner"] .planner-transcript-summary .planner-stat-card {
+  min-height: 0;
+  padding: 0.72rem 0.82rem;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+body[data-page="planner"] .planner-transcript-summary .planner-stat-label {
+  font-size: 0.58rem;
+  line-height: 1.2;
+  letter-spacing: 0.22em;
+}
+
+body[data-page="planner"] .planner-transcript-summary .planner-stat-value {
+  margin-top: 0.18rem;
+  font-size: clamp(1rem, 1.1vw, 1.32rem);
+  line-height: 1.04;
+  overflow-wrap: anywhere;
+}
+
+body[data-page="planner"] .planner-transcript-summary .planner-stat-value-identity {
+  font-size: 0.78rem;
+  line-height: 1.2;
+}
+
+body[data-page="planner"] .planner-course-review {
+  display: flex;
+  flex-direction: column;
+  gap: 0.65rem;
+  min-height: 0;
+}
+
+body[data-page="planner"] .planner-course-review h3,
+body[data-page="planner"] .planner-transcript-panel .section-heading h2 {
+  font-size: 1.14rem;
+  line-height: 1.06;
+}
+
+body[data-page="planner"] .planner-review-state {
+  min-height: 0;
+  padding: 0.95rem 1rem;
+  font-size: 0.88rem;
+  line-height: 1.45;
+}
+
+body[data-page="planner"] .planner-review-actions {
+  grid-template-columns: 1fr;
+  gap: 0.6rem;
+}

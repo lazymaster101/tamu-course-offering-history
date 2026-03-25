@@ -6337,13 +6337,8 @@ body[data-page="planner"] .planner-review-actions {
 }
 
 body[data-page="planner"] .planner-layout-curator {
-  grid-template-columns: minmax(13.5rem, 15rem) minmax(0, 1.24fr) minmax(15.5rem, 16.75rem) !important;
-  gap: 0.75rem;
-}
-
-body[data-page="planner"] .planner-transcript-panel {
-  padding: 0.95rem;
-  font-size: 0.92rem;
+  grid-template-columns: minmax(17rem, 20rem) minmax(0, 1.22fr) minmax(18rem, 0.92fr) !important;
+  gap: 1rem;
 }
 
 body[data-page="planner"] .planner-transcript-panel .section-kicker,
@@ -6370,22 +6365,21 @@ body[data-page="planner"] .planner-transcript-panel .result-action-button {
 }
 
 body[data-page="planner"].planner-hide-transcript-rail .planner-layout-curator {
-  grid-template-columns: 4.25rem minmax(0, 1.24fr) minmax(15.5rem, 16.75rem) !important;
+  grid-template-columns: 3.25rem minmax(0, 1.22fr) minmax(18rem, 0.92fr) !important;
 }
 
 body[data-page="planner"].planner-hide-assistant-rail .planner-layout-curator {
-  grid-template-columns: minmax(13.5rem, 15rem) minmax(0, 1fr) 4.25rem !important;
+  grid-template-columns: minmax(17rem, 20rem) minmax(0, 1fr) 3.25rem !important;
 }
 
 body[data-page="planner"].planner-hide-transcript-rail.planner-hide-assistant-rail .planner-layout-curator {
-  grid-template-columns: 4.25rem minmax(0, 1fr) 4.25rem !important;
+  grid-template-columns: 3.25rem minmax(0, 1fr) 3.25rem !important;
 }
 
 body[data-page="planner"].planner-hide-transcript-rail .planner-transcript-panel,
 body[data-page="planner"].planner-hide-assistant-rail .planner-assistant-panel {
-  min-width: 4.25rem;
-  padding: 0.45rem;
-  overflow: visible;
+  min-width: 3.25rem;
+  padding: 0.35rem;
 }
 
 body[data-page="planner"].planner-hide-transcript-rail .planner-transcript-panel .planner-rail-toggle,
@@ -6395,15 +6389,14 @@ body[data-page="planner"].planner-hide-assistant-rail .planner-assistant-panel .
   justify-content: center;
   min-height: calc(100vh - var(--topbar-height) - 4rem);
   white-space: nowrap;
-  overflow: visible;
   writing-mode: vertical-rl;
   transform: rotate(180deg);
-  border-radius: 1rem;
-  padding: 0.9rem 0.45rem;
-  font-size: 0.68rem;
-  letter-spacing: 0.18em;
+  border-radius: 0.7rem;
+  padding: 0.7rem 0.25rem;
+  font-size: 0.62rem;
+  letter-spacing: 0.12em;
   opacity: 1;
   visibility: visible;
-  background: rgba(80, 0, 0, 0.08);
-  box-shadow: 0 12px 28px rgba(80, 0, 0, 0.08);
+  background: transparent;
+  box-shadow: none;
 }
